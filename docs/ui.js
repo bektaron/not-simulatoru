@@ -303,16 +303,24 @@ export function noteRow({ id, name, hint, coef, value, step = 0.25, min = 0, max
     update(c, last);
     if (onInput) onInput(c);
   };
-  /** opts: totalCoef (sayılan katsayı) · prePts (aynı satırdaki 1ère puanı; "Puan" = 1ère + Terminale). v null → ders sayılmıyor. */
+  /**
+   * opts: totalCoef (sayılan katsayı) · prePts / preCoef (aynı satırdaki 1ère puanı ve katsayısı; "Puan" = 1ère + Terminale).
+   * ratio: true → puan "94,5/104" (payda = sayılan katsayı; satırların payları toplanınca bac ortalaması çıkar).
+   * İki yıllı derste (preCoef > 0) altta "böyle biterse": iki yılın ortalaması — yıl bu değerle kapanırsa dersin bac'a girdiği not.
+   * v null → ders sayılmıyor.
+   */
   function update(v, opts = {}) {
     last = opts;
-    const { totalCoef, prePts = 0 } = opts;
+    const { totalCoef, prePts = 0, preCoef = 0, ratio = false } = opts;
     if (!showCells) { c1.textContent = ''; c2.textContent = ''; return; }
     c1.textContent = ''; c2.textContent = '';
-    if (!E.isNote(v)) { c2.append(prePts ? fmt1(prePts) : '–', el('small', { text: 'puan' })); return; }
+    const pts = (p) => (ratio && E.isNote(totalCoef) ? `${fmt1(p)}/${totalCoef}` : fmt1(p));
+    if (!E.isNote(v)) { c2.append(prePts ? pts(prePts) : '–', el('small', { text: 'puan' })); return; }
     const d = E.isNote(totalCoef) ? coef / totalCoef : deltaPerPoint;
     c1.append(`+${fmt(d)}`, el('small', { text: '+1 puan' }));
-    c2.append(fmt1(v * coef + prePts), el('small', { text: 'puan' }));
+    const total = v * coef + prePts;
+    const sub = preCoef > 0 ? `böyle biterse ders ${fmt((total) / (coef + preCoef))} · ${coef + preCoef} kats.` : 'puan';
+    c2.append(pts(total), el('small', { text: sub }));
   }
   rng.addEventListener('input', () => commit(parseFloat(rng.value)));
   num.addEventListener('input', () => { const v = parseFloat(num.value); if (Number.isFinite(v)) commit(v); });

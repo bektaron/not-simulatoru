@@ -387,22 +387,30 @@ async function main() {
       const preParts = (l) => (l && active.has(l.id) && E.isNote(LN[l.id]) ? [el('b', { text: fmtN(LN[l.id]) }), ` ×${l.coef}`] : ['—']);
       const prePts = (l) => (l && active.has(l.id) && E.isNote(LN[l.id]) ? E.officialNote(l, LN[l.id]) * l.coef : 0);
       for (const [id, pc] of Object.entries(preCells)) { pc.cell.textContent = ''; pc.cell.append(...preParts(pc.locked)); }
+      // Puan = "94,5/104": satırın bac puanı / sayılan katsayı — payların toplamı bac ortalamasıdır (Üstadım, O29)
+      const preCoef = (l) => (l && active.has(l.id) && E.isNote(LN[l.id]) ? l.coef : 0);
       for (const [id, r] of Object.entries(rows)) {
-        const pp = preCells[id] ? prePts(preCells[id].locked) : 0;
+        const l = preCells[id] ? preCells[id].locked : null;
+        const opts = { totalCoef: T.countedCoef, prePts: prePts(l), preCoef: preCoef(l), ratio: true };
         r.el.classList.toggle('off', !active.has(id));
-        if (!active.has(id)) { r.update(null, { totalCoef: T.countedCoef, prePts: pp }); continue; }
-        r.update(E.isNote(T.effective[id]) ? T.effective[id] : (E.isNote(state.var[id]) ? state.var[id] : r.value), { totalCoef: T.countedCoef, prePts: pp });
+        if (!active.has(id)) { r.update(null, opts); continue; }
+        r.update(E.isNote(T.effective[id]) ? T.effective[id] : (E.isNote(state.var[id]) ? state.var[id] : r.value), opts);
       }
       for (const { pre, c2, s } of staticRows) {
         pre.textContent = ''; pre.append(...preParts(s));
         const pts = prePts(s);
-        c2.textContent = ''; c2.append(pts ? fmt1(pts) : '–', el('small', { text: 'puan' }));
+        c2.textContent = ''; c2.append(pts ? `${fmt1(pts)}/${T.countedCoef}` : '–', el('small', { text: 'puan' }));
       }
       const sumC = (list) => list.reduce((a, s) => a + (s && active.has(s.id) ? s.coef : 0), 0);
       if (grpSub.both) grpSub.both.textContent = `1ère ${sumC(ledgerGroups[0].subjects.map(pairOf))} + Terminale ${sumC(ledgerGroups[0].subjects)} kats.`;
       if (grpSub.tle) grpSub.tle.textContent = `Terminale ${sumC(ledgerGroups[1].subjects)} kats.`;
       if (grpSub.only1) grpSub.only1.textContent = `1ère ${sumC(only1)} kats.`;
-      $('#ledgerFoot').textContent = `1ère (donmuş) ${T.lockedCoef} kats. · ort. ${fmt(T.lockedAvg)}  ·  Terminale (simülasyon) ${T.restCoef} kats. · ort. ${fmt(T.restAvg)}  →  bac ${fmt(T.final)}`;
+      // "Böyle biterse": her ders tablodaki değerle kapanırsa — üstteki büyük sayıyla aynı hesap, burada puan dökümüyle
+      $('#endFinal').textContent = `${fmt1(T.weightedSum)}/${T.countedCoef} → ${fmt(T.final)}`;
+      setPill($('#endMention'), E.mention(T.raw, cfg));
+      $('#endSub').textContent = `1ère ${fmt1(T.lockedSum)} (${T.lockedCoef} kats. · ort. ${fmt(T.lockedAvg)}) + Terminale ${fmt1(T.restSum)} (${T.restCoef} kats. · ort. ${fmt(T.restAvg)})`
+        + (nx ? ` · ${nx.short} (${nx.threshold}) için +${fmt1(nx.gapWeighted)} puan` : ' · en üst eşik aşıldı')
+        + (T.missing.length ? ` · ${T.missing.length} ders notsuz, sayılmadı` : '');
 
       renderLever(T);
 

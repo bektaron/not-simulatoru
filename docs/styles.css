@@ -103,7 +103,9 @@ input[type=number]{font-family:var(--f-num);text-align:right}
 .hdr{display:grid;grid-template-columns:minmax(0,1.5fr) 52px minmax(0,2.2fr) 66px 74px 74px;gap:12px;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:4px}
 .hdr span:nth-child(n+4){text-align:right} .hdr span:nth-child(2){text-align:center}
 /* iki sütunlu defter (Öğrenci A): 1ère (donmuş) | Terminale (simülasyon) */
-.row.dual,.hdr.dual{grid-template-columns:minmax(0,1.8fr) 78px 44px minmax(0,1.5fr) 66px 70px 70px}
+.row.dual,.hdr.dual{grid-template-columns:minmax(0,1.8fr) 78px 44px minmax(0,1.4fr) 66px 66px 96px}
+.row.dual .c2 small{white-space:normal;line-height:1.25} /* "böyle biterse ders 15,75 · 6 kats." iki satıra sarar */
+.need.end{margin-top:14px} .need.end .endrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap} .need.end .pill{margin-top:0}
 .hdr.dual span:nth-child(2){text-align:right} .hdr.dual span:nth-child(3){text-align:center} .hdr.dual span:nth-child(4){text-align:left}
 .cell.pre{color:var(--muted)} .cell.pre b{color:var(--ink);font-weight:600}
 .row.static .rng .sub{font-size:.78rem}
@@ -263,7 +265,7 @@ td.num,.card td.num{white-space:nowrap}
   .row .c1,.row .c2{text-align:right}
   .hdr{display:grid !important;grid-template-columns:minmax(0,1.6fr) 52px 70px 74px 74px}
   .hdr span:nth-child(4){display:none}
-  .row.dual,.hdr.dual{grid-template-columns:minmax(0,1.5fr) 70px 44px 70px 70px 70px}
+  .row.dual,.hdr.dual{grid-template-columns:minmax(0,1.5fr) 70px 44px 70px 66px 92px}
   .hdr.dual span:nth-child(4){display:block} .hdr.dual span:nth-child(5){display:none}
   .band{grid-template-columns:1.3fr 1fr 1fr 1fr}
   .band>div:nth-child(3){border-left:1px solid var(--rule);padding-left:16px}
