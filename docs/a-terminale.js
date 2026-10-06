@@ -556,6 +556,25 @@ async function main() {
     notesUl.textContent = '';
     for (const n of [...(data.notes || []), ...GENERIC_NOTES]) notesUl.append(el('li', { text: n }));
 
+    /* senaryo tahminleri: dosyadaki Kötü / Gerçekçi değerleri ders ders + her senaryonun kaynağı (Üstadım, O29) */
+    const scen = data.scenarios || {};
+    const scNames = [['kotu', 'Kötü gidiş'], ['gercekci', 'Gerçekçi']];
+    const scBody = el('tbody');
+    for (const s of cfg.subjects.filter((x) => !x.locked)) {
+      scBody.append(el('tr', {}, el('td', { text: s.label }), el('td', { class: 'r', text: String(s.coef) }),
+        ...scNames.map(([k]) => el('td', { class: 'r', text: E.isNote((scen[k] || {})[s.id]) ? fmtS((scen[k] || {})[s.id]) : '–' }))));
+    }
+    const scBac = scNames.map(([k]) => fmt(E.finalBac(cfg, E.buildBacNotes(cfg, data, k).notes).final));
+    scBody.append(el('tr', { class: 'best' }, el('td', { text: 'Bac genel ortalaması' }), el('td'), ...scBac.map((v) => el('td', { class: 'r', text: v }))));
+    $('#scenTable').textContent = '';
+    $('#scenTable').append(el('table', {}, el('thead', {}, el('tr', {}, el('th', { text: 'Ders' }), el('th', { class: 'r', text: 'Kats.' }), ...scNames.map(([, l]) => el('th', { class: 'r', text: l })))), scBody));
+    const fileScen = Object.keys(scen).length > 0;
+    $('#scenNote').textContent = (fileScen
+      ? 'Kötü gidiş ve Gerçekçi: veri dosyasındaki elle girilmiş tahminler — 1ère yıllık ortalamaları ve Terminale\'nin ilk sinyalleri (2 Ekim 2026); Philosophie ve Grand oral için veri yok, Français yazılı / sözlü notlarından türetildi. Pronote yenilemesiyle değişmezler; MyTaskBar sabit kaydında ("scenarios") düzenlenir. '
+      : 'Kötü gidiş ve Gerçekçi: dosyada senaryo yok, bu yılın ders ortalamalarından türetildi (gerçekçi = ortalama, kötü = −2). ')
+      + 'Hedef: Gerçekçi notların "Hedefe ne lazım?" kaydırıcısındaki hedefe göre dağıtılmış hâli (sabit dersler oynamaz). '
+      + 'Güncel (Pronote): yalnız bilinenler — 1ère resmî notları + bu yıl notu olan derslerde Terminale ortalaması; notu olmayan dersler boş.';
+
     /* başlangıç */
     renderPins();
     if (state.scenario === 'custom' && session.get().custom) {
