@@ -151,6 +151,7 @@ details.sheet summary{cursor:pointer;font-family:var(--f-display);font-weight:60
 .tag{font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:4px;background:var(--warn-soft);color:var(--warn);margin-left:6px;vertical-align:1px;white-space:nowrap}
 .tag.est{background:var(--accent-soft);color:var(--accent)}
 .tag.tmp{background:var(--good-soft);color:var(--good)}
+.tag.cur{background:var(--good-soft);color:var(--good)} /* güncel senaryo: Pronote ortalamasından */
 
 /* sekmeler */
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--rule)}

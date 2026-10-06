@@ -4,6 +4,7 @@ initTheme($('#theme'));
 initPrint($('#pdfBtn'));
 
 const SCENARIOS = [
+  { id: 'guncel', label: 'Güncel (Pronote)' }, // gerçekçi + notu olan derste bu yılın Pronote ortalaması
   { id: 'kotu', label: 'Kötü gidiş' },
   { id: 'gercekci', label: 'Gerçekçi (1ère eğilimi)' },
   { id: 'hedef', label: 'Hedef' },
@@ -62,9 +63,11 @@ async function main() {
     const state = {
       options: resolved.options,
       lockedEdits: { ...(session.get().lockedEdits || {}) },
-      scenario: session.get().scenario || 'gercekci',
+      scenario: session.get().scenario || 'guncel',
       var: {},
       estimated: new Set(),
+      current: new Set(), // 'güncel' senaryoda Pronote ortalamasından gelen dersler
+      counts: {},
       source: 'file',
       periods: {},
       effort: null, // hedef ayarı sonrası emek dökümü (renderLever)
@@ -132,7 +135,7 @@ async function main() {
         clearResult();
         renderPins();
         if (optBox.checked && lvcT && !E.isNote(state.var[lvcT.id])) {
-          const built = E.buildBacNotes(cfg, data, state.scenario === 'custom' ? 'gercekci' : state.scenario);
+          const built = E.buildBacNotes(cfg, data, state.scenario === 'custom' ? 'guncel' : state.scenario);
           state.var[lvcT.id] = built.notes[lvcT.id];
           if (built.estimated.includes(lvcT.id)) state.estimated.add(lvcT.id);
           lvcRow.set(state.var[lvcT.id]);
@@ -256,12 +259,23 @@ async function main() {
         const tag = r.el.querySelector('.tag.est');
         if (state.estimated.has(id) && !tag) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag est', text: 'tahmin' }), r.el.querySelector('.name small'));
         if (!state.estimated.has(id) && tag) tag.remove();
+        const cur = r.el.querySelector('.tag.cur');
+        const curText = `güncel · ${state.counts[id] || 0} not`;
+        if (state.current.has(id) && !cur) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag cur', text: curText, title: 'Bu yılın Pronote ortalaması (dönem ortalamalarının ortalaması)' }), r.el.querySelector('.name small'));
+        else if (state.current.has(id) && cur) cur.textContent = curText;
+        if (!state.current.has(id) && cur) cur.remove();
         const pin = r.el.querySelector('.tag.pin');
         if (state.pinned.has(id) && !pin) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag pin', text: 'sabit' }), r.el.querySelector('.name small'));
         if (!state.pinned.has(id) && pin) pin.remove();
       }
     }
     function describeSource() {
+      if (state.source === 'current') {
+        const cur = [...state.current].map((id) => `${labelOf(id)} (${state.counts[id] || 0})`).join(', ');
+        $('#scenSource').textContent = `Kaynak: "güncel" etiketli derslerde bu yılın Pronote ortalaması — ${cur || 'henüz not yok'}; `
+          + `"tahmin" etiketlilerde henüz not yok, gerçekçi senaryonun tahmini duruyor. Az notla ortalama oynaktır; sınav dersleri tam puana yuvarlanır.`;
+        return;
+      }
       const src = state.source === 'file' ? 'veri dosyasındaki senaryo' : state.source === 'derived' ? 'dosyada senaryo yok; ders ortalamalarından türetildi' : 'veri dosyası + ders ortalamalarından tamamlandı';
       const est = state.estimated.size ? ` · "tahmin" etiketli dersler için henüz not yok (${[...state.estimated].map(labelOf).join(', ')}).` : '';
       const nP = Math.max(0, ...Object.values(state.periods || {}));
@@ -274,6 +288,8 @@ async function main() {
       const built = E.buildBacNotes(cfg, data, name);
       state.var = pick(built.notes, cfg.subjects.filter((s) => !s.locked));
       state.estimated = new Set(built.estimated);
+      state.current = new Set(built.current || []);
+      state.counts = built.counts || {};
       state.source = built.source;
       state.periods = built.periods;
       state.scenario = name;
@@ -450,9 +466,11 @@ async function main() {
     /* başlangıç */
     renderPins();
     if (state.scenario === 'custom' && session.get().custom) {
-      const built = E.buildBacNotes(cfg, data, 'gercekci');
+      const built = E.buildBacNotes(cfg, data, 'guncel');
       state.var = { ...pick(built.notes, cfg.subjects.filter((s) => !s.locked)), ...session.get().custom };
       state.estimated = new Set(built.estimated);
+      state.current = new Set(built.current || []);
+      state.counts = built.counts || {};
       state.source = built.source;
       state.periods = built.periods;
       seg.clear();
@@ -461,7 +479,7 @@ async function main() {
       describeSource();
       calc();
     } else {
-      applyScenario(SCENARIOS.some((s) => s.id === state.scenario) ? state.scenario : 'gercekci');
+      applyScenario(SCENARIOS.some((s) => s.id === state.scenario) ? state.scenario : 'guncel');
     }
   }
 }

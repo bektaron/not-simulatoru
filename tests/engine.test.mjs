@@ -343,6 +343,34 @@ test('distributeToTarget: A örnek verisi, spe1 sabit — hedef tutar, δ en kü
   assert.ok(E.finalBac(cfg, under).raw < target);
 });
 
+test('buildBacNotes güncel: notu olan derste yıl içi Pronote ortalaması (ızgarada), olmayanda gerçekçi tahmin', () => {
+  const cfg = E.withOptions(cfg2027, {});
+  const base = E.buildBacNotes(cfg, exA, 'gercekci');
+  const cur = E.buildBacNotes(cfg, exA, 'guncel');
+  const { averages } = E.yearAverages(exA.grades, { defaultPeriod: exA.period.index });
+  const variable = cfg.subjects.filter((s) => !s.locked);
+  assert.equal(cur.source, 'current');
+  assert.ok(cur.current.length > 0);
+  for (const s of variable) {
+    if (averages[s.id] != null) {
+      assert.ok(cur.current.includes(s.id), s.id);
+      assert.equal(cur.notes[s.id], E.toSubjectGrid(s, averages[s.id]), s.id);
+    } else {
+      assert.ok(cur.estimated.includes(s.id), s.id);
+      assert.equal(cur.notes[s.id], base.notes[s.id], s.id);
+    }
+  }
+  assert.equal(cur.current.length + cur.estimated.length, variable.length);
+  // kilitli notlar aynen; not sayıları yalnız gerçek notlardan (Abs sayılmaz)
+  for (const s of cfg.subjects.filter((x) => x.locked)) assert.equal(cur.notes[s.id], base.notes[s.id]);
+  const n = exA.grades.filter((g) => g.subjectId === cur.current[0] && E.isNote(g.note)).length;
+  assert.equal(cur.counts[cur.current[0]], n);
+  // not hiç yoksa her ders tahmin, değerler gerçekçiyle aynı
+  const none = E.buildBacNotes(cfg, { ...exA, grades: [] }, 'guncel');
+  assert.deepEqual(none.current, []);
+  assert.deepEqual(none.notes, E.buildBacNotes(cfg, { ...exA, grades: [] }, 'gercekci').notes);
+});
+
 test('effortBreakdown: önce/sonra resmî not, emek, genele katkı; sabit ders emeksiz en sonda', () => {
   const r = E.distributeToTarget(cfgT, notesT, 12, { pinned: ['p'] });
   const b = E.effortBreakdown(cfgT, notesT, r.notes, { pinned: ['p'] });

@@ -592,6 +592,7 @@ export function deriveScenario(config, grades, opts = {}) {
  * Dönen: { notes, source: 'file'|'derived'|'mixed', estimated: [...] }
  */
 export function buildBacNotes(config, data, scenarioName = 'gercekci') {
+  if (scenarioName === 'guncel') return buildCurrentNotes(config, data);
   const locked = lockedToNotes(data && data.locked);
   const derived = deriveScenario(config, data && data.grades, {
     defaultPeriod: data && data.period ? data.period.index : undefined,
@@ -609,6 +610,29 @@ export function buildBacNotes(config, data, scenarioName = 'gercekci') {
   }
   const source = fromFile === 0 ? 'derived' : estimated.length === 0 ? 'file' : 'mixed';
   return { notes, source, estimated, averages: derived.averages, periods: derived.periods };
+}
+
+/**
+ * "Güncel" senaryo = gerçekçi senaryonun Pronote'la güncellenmiş hâli: notu olan derste yıl içi ortalaması
+ * (dönem ortalamalarının ortalaması, dersin ızgarasına oturtulur — deriveScenario ile aynı kural), notu
+ * olmayan derste gerçekçi senaryonun değeri (dosyadaki tahmin ya da türetilmiş). Ek alanlar:
+ * current = güncel ortalamadan gelen dersler · counts = ders başına not sayısı · estimated = tahminde kalanlar.
+ */
+function buildCurrentNotes(config, data) {
+  const base = buildBacNotes(config, data, 'gercekci');
+  const { averages, periods } = yearAverages(data && data.grades, { defaultPeriod: data && data.period ? data.period.index : undefined });
+  const counts = {};
+  for (const g of (data && Array.isArray(data.grades) ? data.grades : [])) {
+    if (g && typeof g.subjectId === 'string' && isNote(g.note)) counts[g.subjectId] = (counts[g.subjectId] || 0) + 1;
+  }
+  const notes = { ...base.notes };
+  const current = [];
+  const estimated = [];
+  for (const s of (config.subjects || []).filter((x) => !x.locked)) {
+    if (averages[s.id] != null) { notes[s.id] = clamp(toSubjectGrid(s, averages[s.id]), 0, 20); current.push(s.id); }
+    else estimated.push(s.id);
+  }
+  return { notes, source: 'current', estimated, current, counts, averages, periods, baseSource: base.source };
 }
 
 /* ------------------------------------------------------------------ */
