@@ -69,8 +69,7 @@ async function main() {
       current: new Set(), // 'güncel' senaryoda Pronote ortalamasından gelen dersler
       counts: {},
       avgs: {}, // ders başına bu yılın Pronote ortalaması (etikette, yuvarlanmamış)
-      premiere: new Set(), // 'güncel' senaryoda bu yıl notu olmadığı için 1ère yıllık notuyla yer tutulan dersler
-      prem: {},
+      empty: new Set(), // 'güncel' senaryoda bu yıl notu olmayan dersler: boş, hesaba girmez
       source: 'file',
       periods: {},
       effort: null, // hedef ayarı sonrası emek dökümü (renderLever)
@@ -166,9 +165,10 @@ async function main() {
         renderPins();
         if (optBox.checked && lvcT && !E.isNote(state.var[lvcT.id])) {
           const built = E.buildBacNotes(cfg, data, state.scenario === 'custom' ? 'guncel' : state.scenario);
-          state.var[lvcT.id] = built.notes[lvcT.id];
+          if (E.isNote(built.notes[lvcT.id])) state.var[lvcT.id] = built.notes[lvcT.id];
           if (built.estimated.includes(lvcT.id)) state.estimated.add(lvcT.id);
-          lvcRow.set(state.var[lvcT.id]);
+          if ((built.empty || []).includes(lvcT.id)) state.empty.add(lvcT.id);
+          lvcRow.set(E.isNote(state.var[lvcT.id]) ? state.var[lvcT.id] : null);
         }
         calc();
       });
@@ -284,7 +284,7 @@ async function main() {
     $('#scen').append(customNote);
 
     function syncRows() {
-      for (const [id, r] of Object.entries(rows)) if (E.isNote(state.var[id])) r.set(state.var[id]);
+      for (const [id, r] of Object.entries(rows)) { if (E.isNote(state.var[id])) r.set(state.var[id]); else if (state.empty.has(id)) r.set(null); }
       for (const [id, r] of Object.entries(rows)) {
         const tag = r.el.querySelector('.tag.est');
         if (state.estimated.has(id) && !tag) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag est', text: 'tahmin' }), r.el.querySelector('.name small'));
@@ -294,11 +294,10 @@ async function main() {
         if (state.current.has(id) && !cur) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag cur', text: curText, title: 'Bu yılın Pronote ortalaması (dönem ortalamalarının ortalaması)' }), r.el.querySelector('.name small'));
         else if (state.current.has(id) && cur) cur.textContent = curText;
         if (!state.current.has(id) && cur) cur.remove();
-        const pre = r.el.querySelector('.tag.prm');
-        const preText = `1ère güncel${E.isNote(state.prem[id]) ? ` · ${fmt(state.prem[id])}` : ''}`;
-        if (state.premiere.has(id) && !pre) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag prm', text: preText, title: 'Bu yıl henüz not yok: 1ère yıllık notu yer tutuyor (Terminale notu gelince yerini o alır)' }), r.el.querySelector('.name small'));
-        else if (state.premiere.has(id) && pre) pre.textContent = preText;
-        if (!state.premiere.has(id) && pre) pre.remove();
+        const none = r.el.querySelector('.tag.none');
+        const isEmpty = state.empty.has(id) && !E.isNote(state.var[id]);
+        if (isEmpty && !none) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag none', text: 'not yok', title: 'Bu yıl henüz not yok: hesaba girmez. Kaydırıcıyı oynatırsanız "ne olur" değeri olarak sayılır.' }), r.el.querySelector('.name small'));
+        if (!isEmpty && none) none.remove();
         const pin = r.el.querySelector('.tag.pin');
         if (state.pinned.has(id) && !pin) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag pin', text: 'sabit' }), r.el.querySelector('.name small'));
         if (!state.pinned.has(id) && pin) pin.remove();
@@ -307,10 +306,10 @@ async function main() {
     function describeSource() {
       if (state.source === 'current') {
         const cur = [...state.current].map((id) => `${labelOf(id)} (${state.counts[id] || 0})`).join(', ');
-        $('#scenSource').textContent = `Kaynak: "güncel" etiketli derslerde bu yılın Terminale ortalaması — ${cur || 'henüz not yok'}; `
-          + `"1ère güncel" etiketlilerde bu yıl henüz not yok, 1ère yıllık notu yer tutuyor`
-          + `${state.estimated.size ? `; "tahmin" etiketlilerde 1ère notu da yok, gerçekçi senaryonun tahmini duruyor` : ''}. `
-          + `Resmî kural: 1ère ve Terminale ayrı katsayılı ayrı notlardır, birleştirilmez. Az notla ortalama oynaktır; sınav derslerine Haziran sınavı girer, buradaki değer varsayımdır ve tam puana yuvarlanır.`;
+        const emp = [...state.empty].filter((id) => !E.isNote(state.var[id])).map(labelOf).join(', ');
+        $('#scenSource').textContent = `Kaynak: yalnız bilinenler — 1ère resmî notları + "güncel" etiketli derslerde bu yılın Terminale ortalaması (${cur || 'henüz not yok'}). `
+          + (emp ? `"Not yok" etiketli dersler boş, hesaba girmez: ${emp}. ` : '')
+          + `Tahmin için Kötü / Gerçekçi / Hedef senaryoları. Resmî kural: 1ère ve Terminale ayrı katsayılı ayrı notlardır. Az notla ortalama oynaktır; sınav derslerine Haziran sınavı girer.`;
         return;
       }
       const src = state.source === 'file' ? 'veri dosyasındaki senaryo' : state.source === 'derived' ? 'dosyada senaryo yok; ders ortalamalarından türetildi' : 'veri dosyası + ders ortalamalarından tamamlandı';
@@ -328,8 +327,7 @@ async function main() {
       state.current = new Set(built.current || []);
       state.counts = built.counts || {};
       state.avgs = built.current ? built.averages || {} : {};
-      state.premiere = new Set(built.premiere || []);
-      state.prem = built.premiereValues || {};
+      state.empty = new Set(built.empty || []);
       state.source = built.source;
       state.periods = built.periods;
       state.scenario = name;
@@ -394,7 +392,9 @@ async function main() {
         const opts = { totalCoef: T.countedCoef, prePts: prePts(l), preCoef: preCoef(l), ratio: true };
         r.el.classList.toggle('off', !active.has(id));
         if (!active.has(id)) { r.update(null, opts); continue; }
-        r.update(E.isNote(T.effective[id]) ? T.effective[id] : (E.isNote(state.var[id]) ? state.var[id] : r.value), opts);
+        if (E.isNote(T.effective[id])) r.update(T.effective[id], opts);
+        else if (E.isNote(state.var[id])) r.update(state.var[id], opts);
+        else r.update(r.value, opts); // boş satır (güncel, not yok): value null → yalnız 1ère puanı
       }
       for (const { pre, c2, s } of staticRows) {
         pre.textContent = ''; pre.append(...preParts(s));
@@ -408,7 +408,11 @@ async function main() {
       // "Böyle biterse": her ders tablodaki değerle kapanırsa — üstteki büyük sayıyla aynı hesap, burada puan dökümüyle
       $('#endFinal').textContent = `${fmt1(T.weightedSum)}/${20 * T.countedCoef} → ${fmt(T.final)}`;
       setPill($('#endMention'), E.mention(T.raw, cfg));
-      $('#endSub').textContent = `1ère ${fmt1(T.lockedSum)} (${T.lockedCoef} kats. · ort. ${fmt(T.lockedAvg)}) + Terminale ${fmt1(T.restSum)} (${T.restCoef} kats. · ort. ${fmt(T.restAvg)})`
+      // sayılan katsayılar (boş dersler hariç): güncel senaryoda Terminale 69 değil, notu olan derslerin toplamı
+      const cntL = cfg.subjects.filter((s) => s.locked && E.isNote(T.effective[s.id])).reduce((a, s) => a + s.coef, 0);
+      const cntR = T.countedCoef - cntL;
+      $('#restTitle').textContent = `Bac notları — 1ère ${T.lockedCoef} + Terminale ${T.restCoef} = ${T.totalCoef} katsayı${T.missing.length ? ` · sayılan ${T.countedCoef}` : ''}`;
+      $('#endSub').textContent = `1ère ${fmt1(T.lockedSum)} (${cntL} kats. · ort. ${fmt(T.lockedAvg)}) + Terminale ${fmt1(T.restSum)} (${cntR} kats. · ort. ${fmt(T.restAvg)})`
         + (nx ? ` · ${nx.short} (${nx.threshold}) için +${fmt1(nx.gapWeighted)} puan` : ' · en üst eşik aşıldı')
         + (T.missing.length ? ` · ${T.missing.length} ders notsuz, sayılmadı` : '');
 
@@ -546,8 +550,7 @@ async function main() {
       state.current = new Set(built.current || []);
       state.counts = built.counts || {};
       state.avgs = built.averages || {};
-      state.premiere = new Set(built.premiere || []);
-      state.prem = built.premiereValues || {};
+      state.empty = new Set(built.empty || []);
       state.source = built.source;
       state.periods = built.periods;
       seg.clear();

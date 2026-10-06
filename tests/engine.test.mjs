@@ -352,29 +352,29 @@ test('buildBacNotes güncel: notu olan derste yıl içi Pronote ortalaması (ız
   assert.equal(cur.source, 'current');
   assert.ok(cur.current.length > 0);
   for (const s of variable) {
-    const p = E.premiereNote(s, exA);
     if (averages[s.id] != null) {
       assert.ok(cur.current.includes(s.id), s.id);
       assert.equal(cur.notes[s.id], E.toSubjectGrid(s, averages[s.id]), s.id); // 1ère karışmaz (resmî kural)
-    } else if (p != null) {
-      assert.ok(cur.premiere.includes(s.id), s.id);
-      assert.equal(cur.notes[s.id], E.toSubjectGrid(s, p), s.id);
-      assert.equal(cur.premiereValues[s.id], p);
     } else {
-      assert.ok(cur.estimated.includes(s.id), s.id);
-      assert.equal(cur.notes[s.id], base.notes[s.id], s.id);
+      assert.ok(cur.empty.includes(s.id), s.id); // bu yıl not yok → boş, hesaba girmez
+      assert.ok(!(s.id in cur.notes), s.id);
     }
   }
-  assert.equal(cur.current.length + cur.premiere.length + cur.estimated.length, variable.length);
+  assert.equal(cur.current.length + cur.empty.length, variable.length);
+  assert.deepEqual(cur.estimated, []);
+  // boş dersler finalBac'ta eksik sayılır: yalnız bilinenlerin ortalaması = knownAverage
+  const T = E.finalBac(cfg, cur.notes);
+  assert.deepEqual([...T.missing].sort(), [...cur.empty].sort());
+  assert.equal(T.final, E.knownAverage(cfg, exA).final);
   // kilitli notlar aynen; not sayıları yalnız gerçek notlardan (Abs sayılmaz)
   for (const s of cfg.subjects.filter((x) => x.locked)) assert.equal(cur.notes[s.id], base.notes[s.id]);
   const n = exA.grades.filter((g) => g.subjectId === cur.current[0] && E.isNote(g.note)).length;
   assert.equal(cur.counts[cur.current[0]], n);
-  // 1ère verisi de yoksa (kilitli not ve premiere yok) her ders gerçekçi tahmine düşer
-  const bare = { ...exA, grades: [], locked: [], premiere: undefined };
+  // hiç not yoksa her değişken ders boş; yalnız kilitli notlar kalır
+  const bare = { ...exA, grades: [] };
   const none = E.buildBacNotes(cfg, bare, 'guncel');
-  assert.deepEqual([none.current, none.premiere], [[], []]);
-  assert.deepEqual(none.notes, E.buildBacNotes(cfg, bare, 'gercekci').notes);
+  assert.deepEqual(none.current, []);
+  assert.deepEqual(none.notes, E.lockedToNotes(exA.locked));
 });
 
 test('premiereNote: veri premiere önce, yoksa config eşlemesi → kilitli not; Terminale notu gelince 1ère yerini bırakır', () => {
@@ -386,15 +386,13 @@ test('premiereNote: veri premiere önce, yoksa config eşlemesi → kilitli not;
   assert.equal(E.premiereNote(subj('go'), data), 17); // Grand oral ← Français oral
   assert.equal(E.premiereNote(subj('spe2'), data), 13.4);
   assert.equal(E.premiereNote(subj('philo'), data), null); // fr_e bu veride yok
+  // güncel senaryo 1ère'yi yer tutucu yapmaz: notu olmayan ders boş kalır
   const r = E.buildBacNotes(cfg, data, 'guncel');
-  assert.equal(r.notes.spe2, 13); // sınav dersi: tam puana (13,40 → 13)
-  assert.equal(r.notes.eps, 18); // EPS: en yakın tam puan (18,25 → 18)
-  assert.equal(r.notes.hg, 13.9);
-  assert.ok(r.premiere.includes('hg') && r.premiere.includes('go') && r.estimated.includes('philo'));
+  assert.ok(!('spe2' in r.notes) && !('hg' in r.notes) && r.empty.includes('hg'));
   // Terminale notu gelince: yalnız Terminale ortalaması (1ère karışmaz)
   const withTle = E.buildBacNotes(cfg, { ...data, period: { type: 'semestre', index: 1 }, grades: [{ date: '2026-10-01', subjectId: 'hg', note: 18 }] }, 'guncel');
   assert.equal(withTle.notes.hg, 18);
-  assert.ok(withTle.current.includes('hg') && !withTle.premiere.includes('hg'));
+  assert.ok(withTle.current.includes('hg') && !withTle.empty.includes('hg'));
 });
 
 test('knownAverage: yalnız kilitli + bu yıl notu olan dersler; tahminler girmez, senaryodan bağımsız', () => {

@@ -160,7 +160,8 @@ details.sheet summary{cursor:pointer;font-family:var(--f-display);font-weight:60
 .tag.est{background:var(--accent-soft);color:var(--accent)}
 .tag.tmp{background:var(--good-soft);color:var(--good)}
 .tag.cur{background:var(--good-soft);color:var(--good)} /* güncel senaryo: Pronote ortalamasından */
-.tag.prm{background:var(--track);color:var(--ink)} /* güncel senaryo: bu yıl not yok, 1ère yıllık notu yer tutuyor */
+.tag.none{background:var(--track);color:var(--muted)} /* güncel senaryo: bu yıl not yok, boş, hesaba girmez */
+.row.empty .rng{opacity:.35} .row.empty input[type=number]{color:var(--muted)} /* boş satır: kaydırıcı soluk, kutu "–" */
 
 /* sekmeler */
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--rule)}

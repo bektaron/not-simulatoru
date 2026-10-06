@@ -294,7 +294,12 @@ export function noteRow({ id, name, hint, coef, value, step = 0.25, min = 0, max
     el('div', { class: 'rng' }, rng),
     el('div', { class: 'val' }, num),
     c1, c2);
-  const set = (v) => { rng.value = String(v); num.value = String(v); };
+  // set(null): boş satır — kutu boş, kaydırıcı başta ve soluk (not yok, hesaba girmez); kaydırılınca dolar
+  const set = (v) => {
+    if (!E.isNote(v)) { rng.value = String(min); num.value = ''; row.classList.add('empty'); return; }
+    row.classList.remove('empty');
+    rng.value = String(v); num.value = String(v);
+  };
   let last = {};
   const commit = (v) => {
     if (!Number.isFinite(v)) return;
@@ -325,10 +330,11 @@ export function noteRow({ id, name, hint, coef, value, step = 0.25, min = 0, max
   }
   rng.addEventListener('input', () => commit(parseFloat(rng.value)));
   num.addEventListener('input', () => { const v = parseFloat(num.value); if (Number.isFinite(v)) commit(v); });
-  num.addEventListener('change', () => { if (!Number.isFinite(parseFloat(num.value))) set(rng.value); });
+  num.addEventListener('change', () => { if (!Number.isFinite(parseFloat(num.value))) set(row.classList.contains('empty') ? null : parseFloat(rng.value)); });
+  num.setAttribute('placeholder', '–');
   set(value);
   update(value);
-  return { el: row, set, update, pre: preEl, get value() { return parseFloat(rng.value); } };
+  return { el: row, set, update, pre: preEl, get value() { return row.classList.contains('empty') ? null : parseFloat(rng.value); } };
 }
 
 /** Basılı/bırakılmış düğme grubu. */

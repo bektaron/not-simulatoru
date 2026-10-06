@@ -626,32 +626,29 @@ export function premiereNote(subject, data) {
 }
 
 /**
- * "Güncel" senaryo. Resmî kural (Eduscol, contrôle continu): 1ère ve Terminale ayrı katsayılı ayrı bileşenlerdir;
- * Terminale notu yalnız Terminale dönem ortalamalarından oluşur — 1ère karıştırılmaz (zaten kilitli olarak sayılır).
+ * "Güncel" senaryo = yalnız bilinenler. Resmî kural (Eduscol, contrôle continu): 1ère ve Terminale ayrı katsayılı
+ * ayrı bileşenlerdir; Terminale notu yalnız Terminale dönem ortalamalarından oluşur.
+ *   - kilitli dersler: 1ère resmî notları (veri `locked`)
  *   - bu yıl notu olan ders: yıl içi Terminale ortalaması (dönem ortalamalarının ortalaması, dersin ızgarasında) → current
- *   - notu olmayan ders: 1ère yıllık notu yer tutar (premiereNote, dersin ızgarasında) → premiere
- *   - 1ère notu da yoksa: gerçekçi senaryonun değeri → estimated
- * Sınav derslerinde (Haziran sınavı) her değer bir varsayımdır; kural yok. counts = ders başına not sayısı.
+ *   - bu yıl notu olmayan ders: BOŞ — not haritasında yer almaz, hesaba girmez (finalBac `missing`) → empty
+ *     (Üstadım, O29: "bu sene notu olmayanlar '–' kalsın, tahminlerde oraya değer gireriz"; 1ère yer tutucusu yok)
+ * Sınav derslerinde (Haziran sınavı) yıl içi ortalama bir varsayımdır. counts = ders başına not sayısı.
+ * estimated her zaman boş liste (uyumluluk).
  */
 function buildCurrentNotes(config, data) {
-  const base = buildBacNotes(config, data, 'gercekci');
   const { averages, periods } = yearAverages(data && data.grades, { defaultPeriod: data && data.period ? data.period.index : undefined });
   const counts = {};
   for (const g of (data && Array.isArray(data.grades) ? data.grades : [])) {
     if (g && typeof g.subjectId === 'string' && isNote(g.note)) counts[g.subjectId] = (counts[g.subjectId] || 0) + 1;
   }
-  const notes = { ...base.notes };
+  const notes = lockedToNotes(data && data.locked);
   const current = [];
-  const premiere = [];
-  const premiereValues = {};
-  const estimated = [];
+  const empty = [];
   for (const s of (config.subjects || []).filter((x) => !x.locked)) {
-    if (averages[s.id] != null) { notes[s.id] = clamp(toSubjectGrid(s, averages[s.id]), 0, 20); current.push(s.id); continue; }
-    const p = premiereNote(s, data);
-    if (p != null) { notes[s.id] = clamp(toSubjectGrid(s, p), 0, 20); premiere.push(s.id); premiereValues[s.id] = p; }
-    else estimated.push(s.id);
+    if (averages[s.id] != null) { notes[s.id] = clamp(toSubjectGrid(s, averages[s.id]), 0, 20); current.push(s.id); }
+    else empty.push(s.id);
   }
-  return { notes, source: 'current', estimated, current, premiere, premiereValues, counts, averages, periods, baseSource: base.source };
+  return { notes, source: 'current', estimated: [], current, empty, counts, averages, periods };
 }
 
 /**
