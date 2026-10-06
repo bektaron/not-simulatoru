@@ -89,18 +89,47 @@ async function main() {
     /* gösterge */
     const gauge = buildGauge($('#gauge'), { min: cfg.gauge?.min ?? 6, max: cfg.gauge?.max ?? 20, mentions: cfg.mentions });
 
-    /* defter satırları (temel, kilitsiz dersler) */
+    /* defter: tek tablo, iki sütun — 1ère (donmuş, kilitli not) | Terminale (simülasyon). Resmî kural: aynı dersin iki
+       yılı ayrı katsayılı ayrı notlardır. Eşleşme yalnız kontrol continu derslerinde (config premiere → cc-1ere grubu);
+       Philo/Grand oral'ın Français bağı yalnız güncel senaryonun yer tutucusudur, aynı ders değildir. */
+    const fmtN = (n) => String(Math.round(n * 100) / 100).replace('.', ',');
     const ledger = $('#ledger');
     ledger.textContent = '';
     const rows = {};
-    const gTot = E.groupTotals(base);
-    for (const g of (base.groups || []).filter((x) => !x.locked)) {
-      const subjects = base.subjects.filter((s) => s.group === g.id && !s.locked);
-      if (!subjects.length) continue;
-      ledger.append(el('div', { class: 'grp' }, el('span', { class: 'eyebrow', text: g.label }), el('span', { class: 'sub num', text: `${gTot[g.id] || 0} katsayı` })));
-      for (const s of subjects) {
-        rows[s.id] = noteRow({ id: s.id, name: s.label, hint: s.hint, coef: s.coef, value: 10, step: E.inputStep(s, cfg.scale?.step ?? 0.25), onInput: (v) => onEdit(s.id, v) });
+    const preCells = {}; // Terminale ders kimliği → { cell, locked }
+    const allLocked = [...base.subjects, ...(base.options || []).flatMap((o) => o.subjects || [])].filter((s) => s.locked);
+    const lockedOf = Object.fromEntries(allLocked.map((s) => [s.id, s]));
+    const pairOf = (s) => { const l = s && lockedOf[s.premiere]; return l && l.group === 'cc-1ere' ? l : null; };
+    const optTle = (base.options || []).flatMap((o) => o.subjects || []).find((s) => !s.locked) || null; // LVC Tle
+    const tleSubjects = base.subjects.filter((s) => !s.locked);
+    const ledgerGroups = [
+      { key: 'both', label: 'İki yıllı dersler — kontrol continu', subjects: [...tleSubjects.filter(pairOf), ...(optTle && pairOf(optTle) ? [optTle] : [])] },
+      { key: 'tle', label: 'Yalnız Terminale — sınavlar ve EPS', subjects: tleSubjects.filter((s) => !pairOf(s)) },
+    ];
+    const pairedIds = new Set(ledgerGroups[0].subjects.map((s) => pairOf(s).id));
+    const only1 = allLocked.filter((l) => !pairedIds.has(l.id));
+    const grpSub = {};
+    for (const g of ledgerGroups) {
+      if (!g.subjects.length) continue;
+      grpSub[g.key] = el('span', { class: 'sub num' });
+      ledger.append(el('div', { class: 'grp' }, el('span', { class: 'eyebrow', text: g.label }), grpSub[g.key]));
+      for (const s of g.subjects) {
+        rows[s.id] = noteRow({ id: s.id, name: s.label, hint: s.hint, coef: s.coef, value: 10, step: E.inputStep(s, cfg.scale?.step ?? 0.25), onInput: (v) => onEdit(s.id, v), pre: true });
+        preCells[s.id] = { cell: rows[s.id].pre, locked: pairOf(s) };
         ledger.append(rows[s.id].el);
+      }
+    }
+    const staticRows = []; // yalnız 1ère: Français yazılı/sözlü, Maths anticipée, bırakılan spécialité
+    if (only1.length) {
+      grpSub.only1 = el('span', { class: 'sub num' });
+      ledger.append(el('div', { class: 'grp' }, el('span', { class: 'eyebrow', text: 'Yalnız 1ère — bitti' }), grpSub.only1));
+      for (const l of only1) {
+        const pre = el('div', { class: 'cell pre' });
+        const c2 = el('div', { class: 'cell c2' });
+        ledger.append(el('div', { class: 'row dual static', dataset: { subject: l.id } },
+          el('div', { class: 'name' }, l.label, el('small', { text: l.hint || '1ère · kesin' })), pre, el('div', { class: 'coef' }),
+          el('div', { class: 'rng' }, el('span', { class: 'sub', text: 'Terminale\'de yok' })), el('div', { class: 'val' }), el('div', { class: 'cell c1' }), c2));
+        staticRows.push({ pre, c2, s: l });
       }
     }
 
@@ -123,18 +152,16 @@ async function main() {
       lab.append(`Tle'de takip ediliyor: ${lvcT ? lvcT.label : opt.label} ×${lvcT?.coef ?? 2} (${note1})`,
         el('span', { class: 'tag', text: opt.verified ? 'teyitli' : 'teyitsiz' }), el('br'), el('span', { class: 'sub', text: opt.note || '' }));
       if (lvcT) {
-        lvcRow = noteRow({ id: lvcT.id, name: lvcT.label, hint: lvcT.hint, coef: lvcT.coef, value: 10, step: E.inputStep(lvcT, cfg.scale?.step ?? 0.25), onInput: (v) => onEdit(lvcT.id, v) });
-        lvcRowWrap.textContent = '';
-        lvcRowWrap.append(lvcRow.el);
+        // LVC Tle satırı defterde (iki yıllı dersler); burada yalnız aç/kapa kutusu kalır. Kapalıyken satır soluk, Tle sayılmaz.
+        lvcRow = rows[lvcT.id] || noteRow({ id: lvcT.id, name: lvcT.label, hint: lvcT.hint, coef: lvcT.coef, value: 10, step: E.inputStep(lvcT, cfg.scale?.step ?? 0.25), onInput: (v) => onEdit(lvcT.id, v) });
         rows[lvcT.id] = lvcRow;
       }
+      lvcRowWrap.hidden = true;
       optBox.checked = !!state.options[opt.id];
-      lvcRowWrap.hidden = !optBox.checked;
       optBox.addEventListener('change', () => {
         state.options = { ...state.options, [opt.id]: optBox.checked };
         session.patch({ options: state.options });
         cfg = E.withOptions(base, state.options);
-        lvcRowWrap.hidden = !optBox.checked;
         clearResult();
         renderPins();
         if (optBox.checked && lvcT && !E.isNote(state.var[lvcT.id])) {
@@ -340,7 +367,7 @@ async function main() {
       $('#lockedCoef').textContent = `${T.lockedCoef} katsayı · ${fmt1(T.lockedSum)} puan`;
       $('#restAvg').textContent = fmt(T.restAvg);
       $('#restCoef').textContent = `${T.restCoef} katsayı · ${fmt1(T.restSum)} puan`;
-      $('#restTitle').textContent = `Kalan ${T.restCoef} katsayı`;
+      $('#restTitle').textContent = `Bac notları — 1ère ${T.lockedCoef} + Terminale ${T.restCoef} = ${T.countedCoef} katsayı`;
       $('#lockedSummary').textContent = `1ère'den kilitli ${T.lockedCoef} katsayı${lockedSources.length ? ` (${lockedSources.join(', ')})` : ''}`;
       const nx = E.nextThreshold(T.raw, cfg, T.countedCoef);
       const lev = E.leverage(cfg);
@@ -354,7 +381,28 @@ async function main() {
       }
       gauge.update(T.raw);
       // puan hücresi resmî notla: kontrol continu ↑0,1, EPS tam puan (T.effective)
-      for (const [id, r] of Object.entries(rows)) r.update(E.isNote(T.effective[id]) ? T.effective[id] : (E.isNote(state.var[id]) ? state.var[id] : r.value), { totalCoef: T.countedCoef });
+      // iki sütun: 1ère hücresi (donmuş not ×kats.) + satır puanı = 1ère + Terminale; sayılmayan ders (LVC Tle kapalı) soluk
+      const active = new Set(cfg.subjects.map((s) => s.id));
+      const LN = lockedNotes();
+      const preParts = (l) => (l && active.has(l.id) && E.isNote(LN[l.id]) ? [el('b', { text: fmtN(LN[l.id]) }), ` ×${l.coef}`] : ['—']);
+      const prePts = (l) => (l && active.has(l.id) && E.isNote(LN[l.id]) ? E.officialNote(l, LN[l.id]) * l.coef : 0);
+      for (const [id, pc] of Object.entries(preCells)) { pc.cell.textContent = ''; pc.cell.append(...preParts(pc.locked)); }
+      for (const [id, r] of Object.entries(rows)) {
+        const pp = preCells[id] ? prePts(preCells[id].locked) : 0;
+        r.el.classList.toggle('off', !active.has(id));
+        if (!active.has(id)) { r.update(null, { totalCoef: T.countedCoef, prePts: pp }); continue; }
+        r.update(E.isNote(T.effective[id]) ? T.effective[id] : (E.isNote(state.var[id]) ? state.var[id] : r.value), { totalCoef: T.countedCoef, prePts: pp });
+      }
+      for (const { pre, c2, s } of staticRows) {
+        pre.textContent = ''; pre.append(...preParts(s));
+        const pts = prePts(s);
+        c2.textContent = ''; c2.append(pts ? fmt1(pts) : '–', el('small', { text: 'puan' }));
+      }
+      const sumC = (list) => list.reduce((a, s) => a + (s && active.has(s.id) ? s.coef : 0), 0);
+      if (grpSub.both) grpSub.both.textContent = `1ère ${sumC(ledgerGroups[0].subjects.map(pairOf))} + Terminale ${sumC(ledgerGroups[0].subjects)} kats.`;
+      if (grpSub.tle) grpSub.tle.textContent = `Terminale ${sumC(ledgerGroups[1].subjects)} kats.`;
+      if (grpSub.only1) grpSub.only1.textContent = `1ère ${sumC(only1)} kats.`;
+      $('#ledgerFoot').textContent = `1ère (donmuş) ${T.lockedCoef} kats. · ort. ${fmt(T.lockedAvg)}  ·  Terminale (simülasyon) ${T.restCoef} kats. · ort. ${fmt(T.restAvg)}  →  bac ${fmt(T.final)}`;
 
       renderLever(T);
 

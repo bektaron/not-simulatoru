@@ -279,38 +279,47 @@ export function setPill(node, m) {
  * Defter satırı: ad + ipucu, ×katsayı, kaydırıcı, sayı kutusu, "+1 puan", "Puan".
  * onInput(value) her değişimde çağrılır.
  */
-export function noteRow({ id, name, hint, coef, value, step = 0.25, min = 0, max = 20, deltaPerPoint, onInput, estimated = false, showCells = true }) {
+export function noteRow({ id, name, hint, coef, value, step = 0.25, min = 0, max = 20, deltaPerPoint, onInput, estimated = false, showCells = true, pre = false }) {
   const rng = el('input', { type: 'range', id: `r-${id}`, min, max, step, 'aria-label': `${name} notu` });
   const num = el('input', { type: 'number', id: `n-${id}`, min, max, step, 'aria-label': `${name} notu (sayı)`, inputmode: 'decimal' });
   const nameEl = el('div', { class: 'name' }, name, estimated ? el('span', { class: 'tag est', text: 'tahmin' }) : null, el('small', { text: hint || '' }));
   const c1 = el('div', { class: 'cell c1' });
   const c2 = el('div', { class: 'cell c2' });
-  const row = el('div', { class: 'row', dataset: { subject: id } },
+  // pre: aynı dersin donmuş 1ère notu için ayrı hücre (iki sütunlu defter); içeriği çağıran yazar
+  const preEl = pre ? el('div', { class: 'cell pre' }) : null;
+  const row = el('div', { class: pre ? 'row dual' : 'row', dataset: { subject: id } },
     nameEl,
+    preEl,
     el('div', { class: 'coef' }, '×', el('b', { text: String(coef) })),
     el('div', { class: 'rng' }, rng),
     el('div', { class: 'val' }, num),
     c1, c2);
   const set = (v) => { rng.value = String(v); num.value = String(v); };
+  let last = {};
   const commit = (v) => {
     if (!Number.isFinite(v)) return;
     const c = E.clamp(v, min, max);
     set(c);
-    update(c);
+    update(c, last);
     if (onInput) onInput(c);
   };
-  function update(v, { totalCoef } = {}) {
+  /** opts: totalCoef (sayılan katsayı) · prePts (aynı satırdaki 1ère puanı; "Puan" = 1ère + Terminale). v null → ders sayılmıyor. */
+  function update(v, opts = {}) {
+    last = opts;
+    const { totalCoef, prePts = 0 } = opts;
     if (!showCells) { c1.textContent = ''; c2.textContent = ''; return; }
+    c1.textContent = ''; c2.textContent = '';
+    if (!E.isNote(v)) { c2.append(prePts ? fmt1(prePts) : '–', el('small', { text: 'puan' })); return; }
     const d = E.isNote(totalCoef) ? coef / totalCoef : deltaPerPoint;
-    c1.textContent = ''; c1.append(`+${fmt(d)}`, el('small', { text: '+1 puan' }));
-    c2.textContent = ''; c2.append(fmt1(v * coef), el('small', { text: 'puan' }));
+    c1.append(`+${fmt(d)}`, el('small', { text: '+1 puan' }));
+    c2.append(fmt1(v * coef + prePts), el('small', { text: 'puan' }));
   }
   rng.addEventListener('input', () => commit(parseFloat(rng.value)));
   num.addEventListener('input', () => { const v = parseFloat(num.value); if (Number.isFinite(v)) commit(v); });
   num.addEventListener('change', () => { if (!Number.isFinite(parseFloat(num.value))) set(rng.value); });
   set(value);
   update(value);
-  return { el: row, set, update, get value() { return parseFloat(rng.value); } };
+  return { el: row, set, update, pre: preEl, get value() { return parseFloat(rng.value); } };
 }
 
 /** Basılı/bırakılmış düğme grubu. */

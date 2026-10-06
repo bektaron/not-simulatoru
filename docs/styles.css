@@ -102,6 +102,12 @@ input[type=number]{font-family:var(--f-num);text-align:right}
 .cell small{display:block;color:var(--muted);font-family:var(--f-body);font-size:.7rem}
 .hdr{display:grid;grid-template-columns:minmax(0,1.5fr) 52px minmax(0,2.2fr) 66px 74px 74px;gap:12px;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:4px}
 .hdr span:nth-child(n+4){text-align:right} .hdr span:nth-child(2){text-align:center}
+/* iki sütunlu defter (Öğrenci A): 1ère (donmuş) | Terminale (simülasyon) */
+.row.dual,.hdr.dual{grid-template-columns:minmax(0,1.8fr) 78px 44px minmax(0,1.5fr) 66px 70px 70px}
+.hdr.dual span:nth-child(2){text-align:right} .hdr.dual span:nth-child(3){text-align:center} .hdr.dual span:nth-child(4){text-align:left}
+.cell.pre{color:var(--muted)} .cell.pre b{color:var(--ink);font-weight:600}
+.row.static .rng .sub{font-size:.78rem}
+.row.off .rng,.row.off .val,.row.off .c1,.row.off .coef{opacity:.3;pointer-events:none}
 .lev{display:inline-block;height:6px;border-radius:3px;background:var(--accent);opacity:.75;vertical-align:middle}
 .lev-cell{width:34%}
 /* "Emek nereye?" hedef görünümü (Notları hedefe göre ayarla sonrası): ayrı renk — mor */
@@ -202,6 +208,10 @@ code{font-family:var(--f-num);font-size:.85em;background:var(--accent-soft);padd
   .hdr{display:none}
   .row{grid-template-columns:minmax(0,1fr) 64px 64px;grid-template-areas:"n c v" "s s s" "a b d";row-gap:6px}
   .row .name{grid-area:n}.row .coef{grid-area:c}.row .rng{grid-area:s}.row .val{grid-area:v}.row .c1{grid-area:a;text-align:left}.row .c2{grid-area:b;text-align:left}.row .c3{grid-area:d}
+  .row.dual{grid-template-columns:minmax(0,1fr) 78px 64px;grid-template-areas:"n p v" "s s s" "c a b"}
+  .row .pre{grid-area:p}.row.dual .coef{text-align:left}
+  .row .name .tag{display:inline-block;max-width:100%;white-space:normal;margin:2px 4px 0 0} /* dar ekranda etiket 1ère hücresine taşmasın */
+  .row .pre::before{content:'1ère ';font-family:var(--f-body);font-size:.7rem;color:var(--muted)} /* başlık satırı dar ekranda gizli */
   .scen-cards{grid-template-columns:1fr}
   .locked{grid-template-columns:1fr}
   .cards{grid-template-columns:1fr}
@@ -253,6 +263,8 @@ td.num,.card td.num{white-space:nowrap}
   .row .c1,.row .c2{text-align:right}
   .hdr{display:grid !important;grid-template-columns:minmax(0,1.6fr) 52px 70px 74px 74px}
   .hdr span:nth-child(4){display:none}
+  .row.dual,.hdr.dual{grid-template-columns:minmax(0,1.5fr) 70px 44px 70px 70px 70px}
+  .hdr.dual span:nth-child(4){display:block} .hdr.dual span:nth-child(5){display:none}
   .band{grid-template-columns:1.3fr 1fr 1fr 1fr}
   .band>div:nth-child(3){border-left:1px solid var(--rule);padding-left:16px}
   .target{grid-template-columns:76px auto}

@@ -2,7 +2,7 @@
 
 İki öğrenci için not / bac simülatörü. **Hangi derste kaç puan, genel ortalamayı ve mention'ı nasıl değiştirir?** sorusunu canlı yanıtlar. Statik site, bağımlılıksız (vanilla HTML/CSS/JS); bilgisayarda yerel sunucudan, iPad'de GitHub Pages'ten (şifreli kayıtla) çalışır. **Not almaz, hiçbir yere bağlanmaz:** yalnız kendi kaydını (`data/` ya da şifreli `docs/web/`) okur ve simüle eder.
 
-- **Öğrenci A — Terminale** (`docs/a-terminale.html`): bac 2027. Kilitli 1ère notları + Terminale senaryoları, 6–20 eşik göstergesi, "Emek nereye?", **"Hedefe ne lazım?"** (hedef kaydırıcısı · sabit dersler · "Notları hedefe göre ayarla" · tek başına gereken not), bu dönemin notları.
+- **Öğrenci A — Terminale** (`docs/a-terminale.html`): bac 2027. Defter tek tablo, iki sütun — **1ère (donmuş)** | **Terminale (simülasyon)** — üç grup: iki yıllı kontrol continu dersleri (HG · LVA · LVB · ES · EMC · LVC; eşleşme config `premiere` → `cc-1ere`) · yalnız Terminale (sınavlar + EPS; 1ère hücresi "—") · yalnız 1ère, bitti (Français yazılı/sözlü · Maths anticipée · bırakılan spé). "Puan" = satırın bac puanı (1ère + Terminale); toplam ÷ katsayı = bac ortalaması. LVC Tle satırı defterde, kapalıyken soluk. Ayrıca 6–20 eşik göstergesi, "Emek nereye?", **"Hedefe ne lazım?"** (hedef kaydırıcısı · sabit dersler · "Notları hedefe göre ayarla" · tek başına gereken not), bu dönemin notları.
 - **Öğrenci B — Seconde** (`docs/b-seconde.html`): trimestre ortalaması (geçici "ya şu sınavdan X alırsa" notlarıyla) + **trimestre hedefi** (her derste / tek derste sonraki N not kaç olmalı) + bac 2029 projeksiyonu (üç spécialité, üç "bırakma" senaryosu yan yana).
 
 ## Kullanım
