@@ -6,6 +6,7 @@ import { createDataClient, Mode } from '../docs/data.js';
 import { validateNotes } from '../docs/validate.js';
 import { dataSource, linkKeyFromHash } from '../docs/ui.js';
 import { pagesUrl } from '../scripts/web-baglanti.mjs';
+import { randomPassword } from '../scripts/web-sifre.mjs';
 import { fingerprint, plan, REPUBLISH_HOURS } from '../scripts/web-yayin.mjs';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
@@ -146,4 +147,14 @@ test('özel bağlantı: #k= anahtarı ayrıştırılır; A ve B aynı anda yükl
   assert.equal(r.mode, Mode.LOCKED);
   assert.match(r.message, /bağlantı artık geçmiyor/);
   assert.equal(store2.peek(), null);
+});
+
+test('geçici şifre: 5-5 biçim, karışan karakter yok, her seferinde farklı', () => {
+  const seen = new Set();
+  for (let i = 0; i < 200; i++) {
+    const p = randomPassword();
+    assert.match(p, /^[a-km-np-z2-9]{5}-[a-km-np-z2-9]{5}$/);
+    seen.add(p);
+  }
+  assert.equal(seen.size, 200);
 });

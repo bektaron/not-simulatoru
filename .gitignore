@@ -7,6 +7,7 @@ docs/data/
 # web yayını: türetilmiş anahtar + yayın durumu (şifreli kayıtlar docs/web/ altında izlenir)
 web-anahtar.local.json
 web-baglanti.local.txt
+web-sifre.local.txt
 .web-yayin.local.json
 
 # Araç çıktıları
