@@ -614,6 +614,20 @@ export function buildBacNotes(config, data, scenarioName = 'gercekci') {
   return { notes, source, estimated, averages: derived.averages, periods: derived.periods };
 }
 
+/**
+ * "Hedef" senaryosu (Üstadım, O29): gerçekçi senaryonun notları hedefe göre ayarlanır — distributeToTarget ile sabit
+ * olmayan derslere en küçük ortak kaydırma; sabit dersler oynamaz. Varsayılan hedef 15, başta sabit ders yok.
+ * Ulaşılamazsa gerçekçi notlar aynen döner (reachable false, best = sabitler yerindeyken varılabilen en yüksek).
+ */
+export function targetScenario(config, data, target, { pinned = [], defaultStep = 0.25 } = {}) {
+  const base = buildBacNotes(config, data, 'gercekci');
+  const r = distributeToTarget(config, base.notes, target, { pinned, defaultStep });
+  return {
+    notes: r.reachable ? r.notes : { ...base.notes }, reachable: r.reachable, delta: r.delta, final: r.final, best: r.best, free: r.free,
+    source: 'target', target, estimated: base.estimated, averages: base.averages, periods: base.periods,
+  };
+}
+
 /** Terminale dersinin 1ère yıllık notu: veri `premiere[id]` (ör. spécialité, EPS), yoksa config `premiere` → kilitli not. */
 export function premiereNote(subject, data) {
   const p = data && data.premiere;

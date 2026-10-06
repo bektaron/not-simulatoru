@@ -52,7 +52,7 @@ async function main() {
       period: session.get().period || defaultPeriod,
       temp: session.get().temp || [],
       proj: session.get().proj || { candidates: [{}, {}, {}], notes: {}, options: { ...(data.options || {}) } },
-      goal: E.clamp(Math.round((Number(session.get().goal) || 14) * 10) / 10, 8, 20),
+      goal: E.clamp(Math.round((Number(session.get().goal) || 18.5) * 10) / 10, 8, 20), // varsayılan trimestre hedefi 18,5 (Üstadım, O29)
       goalCount: [1, 2, 3].includes(session.get().goalCount) ? session.get().goalCount : 1,
     };
     tempSeq = state.temp.reduce((m, t) => Math.max(m, t.id || 0), 0);

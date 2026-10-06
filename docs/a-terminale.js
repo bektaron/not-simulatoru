@@ -73,7 +73,8 @@ async function main() {
       source: 'file',
       periods: {},
       effort: null, // hedef ayarı sonrası emek dökümü (renderLever)
-      target: session.get().target || 14,
+      target: session.get().target || 15, // varsayılan hedef 15 (Üstadım, O29)
+      targetInfo: '',
       // hedef dağıtımında sabit dersler: varsayılan veri dosyasının `pinned` listesi (ör. zayıf ders), oturumda değişir
       pinned: new Set(Array.isArray(session.get().pinned) ? session.get().pinned : (Array.isArray(data.pinned) ? data.pinned : [])),
     };
@@ -226,7 +227,7 @@ async function main() {
       segT.set(String(state.target));
       session.patch({ target: state.target });
       clearResult();
-      calc();
+      if (state.scenario === 'hedef') applyScenario('hedef'); else calc(); // Hedef senaryosu kaydırıcıyı izler
     }
     tRange.addEventListener('input', () => setTarget(parseFloat(tRange.value), 'range'));
     tNum.addEventListener('input', () => { const v = parseFloat(tNum.value); if (v >= 10 && v <= 20) setTarget(v, 'num'); });
@@ -244,6 +245,7 @@ async function main() {
             session.patch({ pinned: [...state.pinned] });
             clearResult();
             renderPins();
+            if (state.scenario === 'hedef') { applyScenario('hedef'); return; } // sabitler değişince hedef yeniden dağıtılır
             syncRows();
             calc();
           },
@@ -304,6 +306,10 @@ async function main() {
       }
     }
     function describeSource() {
+      if (state.source === 'target') {
+        $('#scenSource').textContent = `Kaynak: hedef ${fmt(state.target)} — gerçekçi senaryonun notları hedefe göre ayarlandı: ${state.targetInfo}. Kaydırıcı ve sabitler değişince yeniden dağıtılır.`;
+        return;
+      }
       if (state.source === 'current') {
         const cur = [...state.current].map((id) => `${labelOf(id)} (${state.counts[id] || 0})`).join(', ');
         const emp = [...state.empty].filter((id) => !E.isNote(state.var[id])).map(labelOf).join(', ');
@@ -321,7 +327,16 @@ async function main() {
       $('#scenSource').textContent = `Kaynak: ${src}${est}${per}`;
     }
     function applyScenario(name) {
-      const built = E.buildBacNotes(cfg, data, name);
+      // Hedef senaryosu kaydırıcıya bağlı: gerçekçi notlar hedefe göre ayarlanır, sabit dersler oynamaz (Üstadım, O29)
+      const built = name === 'hedef'
+        ? E.targetScenario(cfg, data, state.target, { pinned: [...state.pinned], defaultStep: cfg.scale?.step ?? 0.25 })
+        : E.buildBacNotes(cfg, data, name);
+      if (name === 'hedef') {
+        const pins = pinnedNow().map((s) => `${s.label} ${fmt(built.notes[s.id])}`).join(', ') || 'yok';
+        state.targetInfo = built.reachable
+          ? `sabit olmayan dersler ${fmtSigned(Math.abs(built.delta) < 0.005 ? 0 : built.delta)} puan kaydırıldı → ${fmt(built.final)} · sabit: ${pins}`
+          : `ulaşılamaz — sabitler (${pins}) yerindeyken en çok ${fmt(E.floor2(built.best))}; gerçekçi notlar gösteriliyor`;
+      }
       state.var = pick(built.notes, cfg.subjects.filter((s) => !s.locked));
       state.estimated = new Set(built.estimated);
       state.current = new Set(built.current || []);

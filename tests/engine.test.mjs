@@ -377,6 +377,24 @@ test('buildBacNotes güncel: notu olan derste yıl içi Pronote ortalaması (ız
   assert.deepEqual(none.notes, E.lockedToNotes(exA.locked));
 });
 
+test('targetScenario: gerçekçi notlar hedefe göre ayarlanır; sabit ders oynamaz; ulaşılamazsa gerçekçi aynen', () => {
+  const cfg = E.withOptions(cfg2027, {});
+  const base = E.buildBacNotes(cfg, exA, 'gercekci');
+  const t = E.targetScenario(cfg, exA, 15, { pinned: [] });
+  assert.equal(t.source, 'target');
+  assert.equal(t.reachable, true);
+  assert.ok(E.finalBac(cfg, t.notes).raw + 1e-9 >= 15);
+  assert.ok(t.delta > 0);
+  for (const s of cfg.subjects.filter((x) => x.locked)) assert.equal(t.notes[s.id], base.notes[s.id]); // kilitli aynen
+  const pinned = E.targetScenario(cfg, exA, 15, { pinned: ['spe1'] });
+  assert.equal(pinned.notes.spe1, base.notes.spe1); // sabit ders gerçekçi değerinde kalır
+  assert.ok(pinned.delta > t.delta); // yük diğerlerine binince kaydırma büyür
+  const far = E.targetScenario(cfg, exA, 20, { pinned: ['spe1'] });
+  assert.equal(far.reachable, false);
+  assert.deepEqual(far.notes, base.notes);
+  assert.ok(E.isNote(far.best) && far.best < 20);
+});
+
 test('premiereNote: veri premiere önce, yoksa config eşlemesi → kilitli not; Terminale notu gelince 1ère yerini bırakır', () => {
   const cfg = E.withOptions(cfg2027, {});
   const subj = (id) => cfg.subjects.find((s) => s.id === id);
