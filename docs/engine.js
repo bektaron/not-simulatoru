@@ -16,6 +16,7 @@
  *   distributeToTarget(config, notes, target, {pinned}) → {reachable, notes, delta, raw, final, best, free}
  *   effortBreakdown(config, before, after, {pinned}) → {rows:[{subjectId, before, after, delta, gain, pinned}], rawBefore, rawAfter}
  *   knownAverage(config, data, {locked})          → {final, raw, coef, total, lockedCoef, currentCoef} (tahminler hariç)
+ *   premiereNote(subject, data)                   → Terminale dersinin 1ère yıllık notu (veri premiere ya da config eşlemesi)
  *   leverage(config, opts)                         → [{subjectId, label, coef, deltaPerPoint}]
  *   termAverage(config, gradesBySubject)           → {subjects, general}
  *   requiredTermNote(config, bySubject, target, {subjectId, count, coef}) → number | 'unreachable' | 'safe'
@@ -613,11 +614,24 @@ export function buildBacNotes(config, data, scenarioName = 'gercekci') {
   return { notes, source, estimated, averages: derived.averages, periods: derived.periods };
 }
 
+/** Terminale dersinin 1ère yıllık notu: veri `premiere[id]` (ör. spécialité, EPS), yoksa config `premiere` → kilitli not. */
+export function premiereNote(subject, data) {
+  const p = data && data.premiere;
+  if (p && isNote(p[subject.id])) return p[subject.id];
+  if (subject && typeof subject.premiere === 'string') {
+    const v = lockedToNotes(data && data.locked)[subject.premiere];
+    if (isNote(v)) return v;
+  }
+  return null;
+}
+
 /**
- * "Güncel" senaryo = gerçekçi senaryonun Pronote'la güncellenmiş hâli: notu olan derste yıl içi ortalaması
- * (dönem ortalamalarının ortalaması, dersin ızgarasına oturtulur — deriveScenario ile aynı kural), notu
- * olmayan derste gerçekçi senaryonun değeri (dosyadaki tahmin ya da türetilmiş). Ek alanlar:
- * current = güncel ortalamadan gelen dersler · counts = ders başına not sayısı · estimated = tahminde kalanlar.
+ * "Güncel" senaryo. Resmî kural (Eduscol, contrôle continu): 1ère ve Terminale ayrı katsayılı ayrı bileşenlerdir;
+ * Terminale notu yalnız Terminale dönem ortalamalarından oluşur — 1ère karıştırılmaz (zaten kilitli olarak sayılır).
+ *   - bu yıl notu olan ders: yıl içi Terminale ortalaması (dönem ortalamalarının ortalaması, dersin ızgarasında) → current
+ *   - notu olmayan ders: 1ère yıllık notu yer tutar (premiereNote, dersin ızgarasında) → premiere
+ *   - 1ère notu da yoksa: gerçekçi senaryonun değeri → estimated
+ * Sınav derslerinde (Haziran sınavı) her değer bir varsayımdır; kural yok. counts = ders başına not sayısı.
  */
 function buildCurrentNotes(config, data) {
   const base = buildBacNotes(config, data, 'gercekci');
@@ -628,12 +642,16 @@ function buildCurrentNotes(config, data) {
   }
   const notes = { ...base.notes };
   const current = [];
+  const premiere = [];
+  const premiereValues = {};
   const estimated = [];
   for (const s of (config.subjects || []).filter((x) => !x.locked)) {
-    if (averages[s.id] != null) { notes[s.id] = clamp(toSubjectGrid(s, averages[s.id]), 0, 20); current.push(s.id); }
+    if (averages[s.id] != null) { notes[s.id] = clamp(toSubjectGrid(s, averages[s.id]), 0, 20); current.push(s.id); continue; }
+    const p = premiereNote(s, data);
+    if (p != null) { notes[s.id] = clamp(toSubjectGrid(s, p), 0, 20); premiere.push(s.id); premiereValues[s.id] = p; }
     else estimated.push(s.id);
   }
-  return { notes, source: 'current', estimated, current, counts, averages, periods, baseSource: base.source };
+  return { notes, source: 'current', estimated, current, premiere, premiereValues, counts, averages, periods, baseSource: base.source };
 }
 
 /**

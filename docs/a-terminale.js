@@ -69,6 +69,8 @@ async function main() {
       current: new Set(), // 'güncel' senaryoda Pronote ortalamasından gelen dersler
       counts: {},
       avgs: {}, // ders başına bu yılın Pronote ortalaması (etikette, yuvarlanmamış)
+      premiere: new Set(), // 'güncel' senaryoda bu yıl notu olmadığı için 1ère yıllık notuyla yer tutulan dersler
+      prem: {},
       source: 'file',
       periods: {},
       effort: null, // hedef ayarı sonrası emek dökümü (renderLever)
@@ -265,6 +267,11 @@ async function main() {
         if (state.current.has(id) && !cur) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag cur', text: curText, title: 'Bu yılın Pronote ortalaması (dönem ortalamalarının ortalaması)' }), r.el.querySelector('.name small'));
         else if (state.current.has(id) && cur) cur.textContent = curText;
         if (!state.current.has(id) && cur) cur.remove();
+        const pre = r.el.querySelector('.tag.prm');
+        const preText = `1ère güncel${E.isNote(state.prem[id]) ? ` · ${fmt(state.prem[id])}` : ''}`;
+        if (state.premiere.has(id) && !pre) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag prm', text: preText, title: 'Bu yıl henüz not yok: 1ère yıllık notu yer tutuyor (Terminale notu gelince yerini o alır)' }), r.el.querySelector('.name small'));
+        else if (state.premiere.has(id) && pre) pre.textContent = preText;
+        if (!state.premiere.has(id) && pre) pre.remove();
         const pin = r.el.querySelector('.tag.pin');
         if (state.pinned.has(id) && !pin) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag pin', text: 'sabit' }), r.el.querySelector('.name small'));
         if (!state.pinned.has(id) && pin) pin.remove();
@@ -273,8 +280,10 @@ async function main() {
     function describeSource() {
       if (state.source === 'current') {
         const cur = [...state.current].map((id) => `${labelOf(id)} (${state.counts[id] || 0})`).join(', ');
-        $('#scenSource').textContent = `Kaynak: "güncel" etiketli derslerde bu yılın Pronote ortalaması — ${cur || 'henüz not yok'}; `
-          + `"tahmin" etiketlilerde henüz not yok, gerçekçi senaryonun tahmini duruyor. Az notla ortalama oynaktır; sınav dersleri tam puana yuvarlanır.`;
+        $('#scenSource').textContent = `Kaynak: "güncel" etiketli derslerde bu yılın Terminale ortalaması — ${cur || 'henüz not yok'}; `
+          + `"1ère güncel" etiketlilerde bu yıl henüz not yok, 1ère yıllık notu yer tutuyor`
+          + `${state.estimated.size ? `; "tahmin" etiketlilerde 1ère notu da yok, gerçekçi senaryonun tahmini duruyor` : ''}. `
+          + `Resmî kural: 1ère ve Terminale ayrı katsayılı ayrı notlardır, birleştirilmez. Az notla ortalama oynaktır; sınav derslerine Haziran sınavı girer, buradaki değer varsayımdır ve tam puana yuvarlanır.`;
         return;
       }
       const src = state.source === 'file' ? 'veri dosyasındaki senaryo' : state.source === 'derived' ? 'dosyada senaryo yok; ders ortalamalarından türetildi' : 'veri dosyası + ders ortalamalarından tamamlandı';
@@ -292,6 +301,8 @@ async function main() {
       state.current = new Set(built.current || []);
       state.counts = built.counts || {};
       state.avgs = built.current ? built.averages || {} : {};
+      state.premiere = new Set(built.premiere || []);
+      state.prem = built.premiereValues || {};
       state.source = built.source;
       state.periods = built.periods;
       state.scenario = name;
@@ -479,6 +490,8 @@ async function main() {
       state.current = new Set(built.current || []);
       state.counts = built.counts || {};
       state.avgs = built.averages || {};
+      state.premiere = new Set(built.premiere || []);
+      state.prem = built.premiereValues || {};
       state.source = built.source;
       state.periods = built.periods;
       seg.clear();

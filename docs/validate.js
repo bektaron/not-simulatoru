@@ -175,6 +175,10 @@ export function checkAgainstConfig(data, config) {
   for (const id of Object.keys(data.subjectLabels || {})) {
     if (!ids.has(id)) err(`/subjectLabels/${id}`, `config'te olmayan ders: ${id}`);
   }
+  for (const id of Object.keys(data.premiere || {})) {
+    if (!ids.has(id)) err(`/premiere/${id}`, `config'te olmayan ders: ${id}`);
+    else if (lockedIds.has(id)) err(`/premiere/${id}`, `kilitli ders: 1ère notu zaten locked'da: ${id}`);
+  }
   (Array.isArray(data.pinned) ? data.pinned : []).forEach((id, i) => {
     if (!ids.has(id)) err(`/pinned/${i}`, `config'te olmayan ders: ${id}`);
     else if (lockedIds.has(id)) err(`/pinned/${i}`, `kilitli ders zaten sabittir: ${id}`);

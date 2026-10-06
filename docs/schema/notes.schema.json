@@ -104,6 +104,10 @@
       },
       "description": "Pronote'un kendi genel ortalaması (ham kaynak değeri, MyTaskBar yazar); simülatör okul katsayılarını bununla sınar."
     },
+    "premiere": {
+      "$ref": "#/$defs/scenarioMap",
+      "description": "1ère yıllık notları (Pronote livret, Année) — config'te 1ère karşılığı olmayan Terminale dersleri için (ör. spécialité, EPS). 'Güncel' senaryoda bu yıl notu olmayan dersin yerini tutar; bir kez yazılır, değişmez."
+    },
     "pinned": {
       "type": "array",
       "maxItems": 40,

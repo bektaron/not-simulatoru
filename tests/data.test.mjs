@@ -84,6 +84,13 @@ test('pinned: şema kabul eder; bilinmeyen ve kilitli ders reddedilir', () => {
   assert.deepEqual(e.map((x) => x.path), ['/pinned/0', '/pinned/1']);
 });
 
+test('premiere: şema kabul eder; 20 üstü, bilinmeyen ve kilitli ders reddedilir', () => {
+  assert.deepEqual(validateNotes({ ...exA, premiere: { spe1: 12.03, eps: 18.25 } }, cfgA, schema).errors, []);
+  assert.ok(validateNotes({ ...exA, premiere: { spe1: 21 } }, cfgA, schema).errors.length > 0);
+  const e = checkAgainstConfig({ ...exA, premiere: { yok: 10, hg1: 13, spe2: 13.4 } }, cfgA);
+  assert.deepEqual(e.map((x) => x.path), ['/premiere/yok', '/premiere/hg1']);
+});
+
 test('yardımcılar: isStale, isLocalPath', () => {
   assert.equal(isStale('2026-09-25T12:00:00Z', NOW), true);  // 8 gün
   assert.equal(isStale('2026-09-27T12:00:00Z', NOW), false); // 6 gün

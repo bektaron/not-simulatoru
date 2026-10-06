@@ -33,14 +33,14 @@
     { "id": "spe_drop", "label": "Bırakılan spécialité", "coef": 8, "group": "cc-1ere", "locked": true, "role": "spe-dropped", "step": 0.1, "rounding": "ceil-0.1" },
     { "id": "spe1", "label": "Spécialité 1", "coef": 16, "group": "exam-tle", "locked": false, "role": "spe-kept", "hint": "sınav · Haziran · tam puan", "step": 1 },
     { "id": "spe2", "label": "Spécialité 2", "coef": 16, "group": "exam-tle", "locked": false, "role": "spe-kept", "hint": "sınav · Haziran · tam puan", "step": 1 },
-    { "id": "philo", "label": "Philosophie", "coef": 8, "group": "exam-tle", "locked": false, "hint": "sınav · tam puan", "step": 1 },
-    { "id": "go", "label": "Grand oral", "coef": 8, "group": "exam-tle", "locked": false, "hint": "sözlü · spécialité soruları · tam puan", "step": 1 },
+    { "id": "philo", "label": "Philosophie", "coef": 8, "group": "exam-tle", "locked": false, "premiere": "fr_e", "hint": "sınav · tam puan", "step": 1 },
+    { "id": "go", "label": "Grand oral", "coef": 8, "group": "exam-tle", "locked": false, "premiere": "fr_o", "hint": "sözlü · spécialité soruları · tam puan", "step": 1 },
     { "id": "eps", "label": "EPS", "coef": 6, "group": "cc-tle", "locked": false, "hint": "yalnız Tle · CCF 3 sınav ortalaması · tam puana yuvarlanır", "step": 1, "rounding": "round-1" },
-    { "id": "hg", "label": "Histoire-géo", "coef": 3, "group": "cc-tle", "locked": false, "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" },
-    { "id": "lva", "label": "LVA", "coef": 3, "group": "cc-tle", "locked": false, "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" },
-    { "id": "lvb", "label": "LVB", "coef": 3, "group": "cc-tle", "locked": false, "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" },
-    { "id": "es", "label": "Ens. scientifique", "coef": 3, "group": "cc-tle", "locked": false, "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" },
-    { "id": "emc", "label": "EMC", "coef": 1, "group": "cc-tle", "locked": false, "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" }
+    { "id": "hg", "label": "Histoire-géo", "coef": 3, "group": "cc-tle", "locked": false, "premiere": "hg1", "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "lva", "label": "LVA", "coef": 3, "group": "cc-tle", "locked": false, "premiere": "lva1", "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "lvb", "label": "LVB", "coef": 3, "group": "cc-tle", "locked": false, "premiere": "lvb1", "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "es", "label": "Ens. scientifique", "coef": 3, "group": "cc-tle", "locked": false, "premiere": "es1", "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "emc", "label": "EMC", "coef": 1, "group": "cc-tle", "locked": false, "premiere": "emc1", "hint": "Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" }
   ],
   "options": [
     {
@@ -61,7 +61,7 @@
       "default": false,
       "note": "Her takip yılı için katsayı 2, 100'e eklenir; bonus değildir, ortalamayı düşürebilir de. Tle'de takip ediliyorsa sayılması zorunludur (arrêté 16-7-2018 m. 2-1).",
       "subjects": [
-        { "id": "lvc", "label": "LVC Tle", "coef": 2, "group": "cc-tle", "locked": false, "hint": "opsiyon · Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" }
+        { "id": "lvc", "label": "LVC Tle", "coef": 2, "group": "cc-tle", "locked": false, "premiere": "lvc1", "hint": "opsiyon · Tle yıllık · üst onda bire yuvarlanır", "step": 0.1, "rounding": "ceil-0.1" }
       ]
     }
   ]
