@@ -1,0 +1,54 @@
+{
+  "_comment": "ÖRNEK VERİ — uydurma değerler. Gerçek notlar yalnız yerel kayıtta (data/) durur.",
+  "example": true,
+  "schemaVersion": 1,
+  "student": "A",
+  "displayName": "Öğrenci A",
+  "track": "bac",
+  "updatedAt": "2026-09-28T18:00:00+03:00",
+  "source": "ÖRNEK · uydurma",
+  "period": { "type": "semestre", "index": 1 },
+  "subjectLabels": {
+    "spe1": "Spécialité 1 (örnek)",
+    "spe2": "Spécialité 2 (örnek)",
+    "spe_drop": "Bırakılan spécialité (örnek)"
+  },
+  "options": { "lvc": false },
+  "locked": [
+    { "id": "fr_e", "note": 12, "coef": 5, "source": "ÖRNEK" },
+    { "id": "fr_o", "note": 14, "coef": 5, "source": "ÖRNEK" },
+    { "id": "ma_a", "note": 11, "coef": 2, "source": "ÖRNEK" },
+    { "id": "hg1", "note": 13.5, "coef": 3, "source": "ÖRNEK" },
+    { "id": "lva1", "note": 15, "coef": 3, "source": "ÖRNEK" },
+    { "id": "lvb1", "note": 12.5, "coef": 3, "source": "ÖRNEK" },
+    { "id": "es1", "note": 11, "coef": 3, "source": "ÖRNEK" },
+    { "id": "emc1", "note": 15, "coef": 1, "source": "ÖRNEK" },
+    { "id": "spe_drop", "note": 12, "coef": 8, "source": "ÖRNEK" },
+    { "id": "lvc1", "note": 13, "coef": 2, "source": "ÖRNEK" }
+  ],
+  "grades": [
+    { "date": "2026-09-15", "subjectId": "spe1", "label": "DS 1", "note": 11.5, "outOf": 20, "coef": 2, "classAvg": 10.8 },
+    { "date": "2026-09-24", "subjectId": "spe1", "label": "Interro", "note": 13, "outOf": 20, "coef": 1, "classAvg": 11.2 },
+    { "date": "2026-09-18", "subjectId": "spe2", "label": "Devoir maison", "note": 14, "outOf": 20, "coef": 1, "classAvg": 12.5 },
+    { "date": "2026-09-22", "subjectId": "philo", "label": "Dissertation", "note": 9.5, "outOf": 20, "coef": 1, "classAvg": 9.9 },
+    { "date": "2026-09-19", "subjectId": "hg", "label": "Contrôle", "note": 12.5, "outOf": 20, "coef": 1, "classAvg": 11.6 },
+    { "date": "2026-09-26", "subjectId": "lva", "label": "Oral", "note": 7, "outOf": 10, "coef": 1, "classAvg": 6.4 },
+    { "date": "2026-09-23", "subjectId": "lvb", "label": "Contrôle", "note": 12, "outOf": 20, "coef": 1, "classAvg": 11.1 },
+    { "date": "2026-09-17", "subjectId": "es", "label": "QCM", "note": 11, "outOf": 20, "coef": 1, "classAvg": 12.0 },
+    { "date": "2026-09-25", "subjectId": "eps", "label": "Cycle 1", "note": 14, "outOf": 20, "coef": 1, "classAvg": 13.2 },
+    { "date": "2026-09-29", "subjectId": "emc", "label": "Exposé", "note": null, "outOf": 20, "coef": 1, "classAvg": 13.5 }
+  ],
+  "upcoming": [
+    { "date": "2026-10-09", "subjectId": "spe1", "label": "DS 2" },
+    { "date": "2026-10-14", "subjectId": "philo", "label": "Explication de texte" }
+  ],
+  "scenarios": {
+    "kotu": { "spe1": 9, "spe2": 9, "philo": 8, "go": 10, "eps": 12, "hg": 10, "lva": 12, "lvb": 10, "es": 9, "emc": 12, "lvc": 11 },
+    "gercekci": { "spe1": 12, "spe2": 11.5, "philo": 10, "go": 13, "eps": 14, "hg": 12.5, "lva": 14, "lvb": 12, "es": 11, "emc": 13.5, "lvc": 14 },
+    "hedef": { "spe1": 15, "spe2": 14, "philo": 13, "go": 16, "eps": 16, "hg": 15, "lva": 16, "lvb": 14, "es": 14, "emc": 16, "lvc": 16 }
+  },
+  "notes": [
+    "Bu bir ÖRNEK dosyadır: tüm notlar uydurmadır. Gerçek veri yalnız yerel kayıtta (data/) tutulur.",
+    "Philosophie ve grand oral için henüz veri yok; senaryo değerleri tahmindir."
+  ]
+}

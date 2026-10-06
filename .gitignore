@@ -1,0 +1,15 @@
+# Kişisel veri asla repoya girmez
+data/*.json
+data/*.local.json
+docs/data/
+*.local.*
+.privacy-terms.local
+# web yayını: türetilmiş anahtar + yayın durumu (şifreli kayıtlar docs/web/ altında izlenir)
+web-anahtar.local.json
+.web-yayin.local.json
+
+# Araç çıktıları
+node_modules/
+.DS_Store
+*.log
+*.zip

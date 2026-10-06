@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; form-action 'none'; base-uri 'self'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Not Simülatörleri</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <nav aria-label="Sayfalar">
+      <a href="index.html" aria-current="page">Giriş</a>
+      <a href="a-terminale.html">Öğrenci A — Terminale</a>
+      <a href="b-seconde.html">Öğrenci B — Seconde</a>
+    </nav>
+    <button type="button" class="btn small" id="theme">Tema</button>
+  </div>
+
+  <header>
+    <div class="eyebrow">Lycée · 2026-27</div>
+    <h1>Not Simülatörleri</h1>
+    <p class="lead">Bac ve dönem ortalaması simülatörü: hangi derste kaç puan, genel ortalamayı ve mention'ı nasıl değiştirir? Program not almaz; yalnız projede kaydedilmiş güncel notları okur ve simüle eder.</p>
+  </header>
+
+  <section class="status" id="status" aria-label="Kayıt durumu"></section>
+
+  <section class="two" aria-label="Simülatörler">
+    <a class="sheet" href="a-terminale.html" id="link-a">
+      <div class="eyebrow">Öğrenci A</div>
+      <h2>Terminale — Bac 2027</h2>
+      <p class="sub mt">Kilitli 1ère notları + Terminale senaryoları; mention eşikleri, "emek nereye", "eşiğe ne lazım".</p>
+    </a>
+    <a class="sheet" href="b-seconde.html" id="link-b">
+      <div class="eyebrow">Öğrenci B</div>
+      <h2>Seconde — 2026-27</h2>
+      <p class="sub mt">Trimestre ortalaması ve bac 2029 için spécialité keşif aracı.</p>
+    </a>
+  </section>
+
+  <section class="notes" aria-label="Nasıl çalışır">
+    <h2>Nasıl çalışır</h2>
+    <ul>
+      <li>Notları program almaz. MyTaskBar Pronote'tan yeniledikçe <code>data/a.json</code> · <code>data/b.json</code> dosyalarını yeniden yazar; kilitli 1ère notları ve senaryolar MyTaskBar'ın sabit kaydından gelir.</li>
+      <li>Program yalnız bu iki kaydı okur. Pronote'a veya başka bir servise bağlanmaz; harici yazı tipi bile yüklemez.</li>
+      <li>Web adresinde (iPad) aynı kayıtlar şifreli durur. Şifre yalnız bu cihazda, tarayıcının içinde çözülür; hiçbir yere gönderilmez. "Hatırla" seçiliyse cihaz şifrenin kendisini değil, ondan türeyen anahtarı saklar.</li>
+      <li>Ekrandaki "Özel" senaryo ve geçici notlar kayda yazılmaz; sekme kapanınca silinir.</li>
+      <li>Kayıt 7 günden eskiyse üstteki bant sarıya döner.</li>
+    </ul>
+  </section>
+</div>
+<script type="module" src="index.js"></script>
+</body>
+</html>

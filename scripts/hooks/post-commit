@@ -1,0 +1,12 @@
+#!/bin/sh
+# commit → web (O29): main'deki her commit GitHub'a itilir; GitHub Pages sayfayı kendiliğinden yeniler.
+# İtmeden önce pre-push gizlilik denetimi çalışır. Uzak yoksa ya da main dışındaysa sessiz geçer.
+# Etkinleştirme (bir kez): npm run hooks  (= git config core.hooksPath scripts/hooks)
+[ "$(git symbolic-ref --short -q HEAD)" = "main" ] || exit 0
+git remote get-url origin >/dev/null 2>&1 || exit 0
+if git push -q origin main; then
+  echo "web: itildi ($(git rev-parse --short HEAD))"
+else
+  echo "web: İTİLEMEDİ — sorun giderilince: git push origin main" >&2
+fi
+exit 0

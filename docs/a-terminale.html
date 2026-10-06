@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; form-action 'none'; base-uri 'self'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Öğrenci A — Bac Simülatörü</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <nav aria-label="Sayfalar">
+      <a href="index.html">Giriş</a>
+      <a href="a-terminale.html" aria-current="page">Öğrenci A — Terminale</a>
+      <a href="b-seconde.html">Öğrenci B — Seconde</a>
+    </nav>
+    <span class="tools"><button type="button" class="btn small" id="pdfBtn" title="PDF olarak kaydet / yazdır">PDF</button><button type="button" class="btn small" id="theme">Tema</button></span>
+  </div>
+  <div id="banner" class="banner hidden"></div>
+
+  <header>
+    <div class="eyebrow">Terminale · Baccalauréat général, session 2027</div>
+    <h1 id="title">Bac Simülatörü</h1>
+    <p class="lead" id="lead">Kalan derslerdeki notları değiştir, bac genel ortalamasının ve mention'ın nasıl oynadığını gör.</p>
+  </header>
+
+  <div id="empty" class="sheet hidden"></div>
+
+  <main id="main" class="panel hidden">
+    <section class="sheet" aria-label="Özet">
+      <div class="band">
+        <div>
+          <div class="eyebrow">Bac genel ortalaması</div>
+          <div class="big" id="final">–</div>
+          <span class="pill acc" id="mention">–</span>
+        </div>
+        <div>
+          <div class="eyebrow">1ère'den kilitli</div>
+          <div class="mid" id="lockedAvg">–</div>
+          <div class="sub" id="lockedCoef">–</div>
+        </div>
+        <div>
+          <div class="eyebrow">Kalan derslerin ort.</div>
+          <div class="mid" id="restAvg">–</div>
+          <div class="sub" id="restCoef">–</div>
+        </div>
+        <div>
+          <div class="eyebrow">Bir üst eşik</div>
+          <div class="mid" id="nextGap">–</div>
+          <div class="sub" id="nextLabel">–</div>
+        </div>
+      </div>
+      <div id="gauge"></div>
+    </section>
+
+    <section aria-label="Senaryo">
+      <div class="eyebrow">Senaryo</div>
+      <div class="scen mt" id="scen" role="group" aria-label="Senaryo seç"></div>
+      <p class="sub mt" id="scenSource"></p>
+    </section>
+
+    <section class="sheet" aria-label="Kalan dersler">
+      <h2 id="restTitle">Kalan katsayılar</h2>
+      <div class="hdr mt"><span>Ders</span><span>Kats.</span><span>Not</span><span></span><span>+1 puan</span><span>Puan</span></div>
+      <div class="ledger" id="ledger"></div>
+    </section>
+
+    <div class="two">
+      <section class="sheet" id="leverBox" aria-label="Kaldıraç">
+        <h2>Emek nereye?<span class="tag tgt hidden" id="leverTag">hedef</span></h2>
+        <p class="sub mt" id="leverSub">Bir derste +1 puanın genel ortalamaya katkısı. Katsayı büyüdükçe aynı emek daha çok getirir.</p>
+        <div class="tablebox mt"><table><thead id="leverHead"><tr><th>Ders</th><th class="r">Kats.</th><th class="r">+1 puan</th><th></th></tr></thead><tbody id="lever"></tbody><tfoot id="leverFoot"></tfoot></table></div>
+        <p class="mt hidden" id="leverBackWrap"><button type="button" class="btn small" id="leverBack">Genel görünüme dön</button></p>
+      </section>
+      <section class="sheet solver" aria-label="Hedef çözücü">
+        <h2>Hedefe ne lazım?</h2>
+        <label class="mt" for="tRange" id="targetLabel">Hedef bitiş ortalaması</label>
+        <div class="target">
+          <input type="range" id="tRange" min="10" max="20" step="0.1" aria-label="Hedef bitiş ortalaması">
+          <input type="number" id="tNum" min="10" max="20" step="0.1" inputmode="decimal" aria-label="Hedef bitiş ortalaması (sayı)">
+          <span class="pill acc" id="tMention">–</span>
+        </div>
+        <div class="seg" id="segT" role="group" aria-label="Eşik kısayolları"></div>
+        <div class="need">
+          <div class="eyebrow">Sabit olmayan derslerde gereken ortalama</div>
+          <div class="mid" id="tNeed">–</div>
+          <div class="sub" id="tNeedSub"></div>
+        </div>
+        <div class="mt"><span class="sub" id="pinsLabel">Dağıtımda sabit tut (notu ekrandaki gibi kalır):</span>
+          <div class="seg pins" id="pins" role="group" aria-labelledby="pinsLabel"></div></div>
+        <p><button type="button" class="btn primary" id="tApply">Notları hedefe göre ayarla</button></p>
+        <p class="sub" id="tResult" role="status"></p>
+        <h3 class="mt">Tek başına</h3>
+        <p class="sub">Diğer notlar ekrandaki gibi kalırsa, o derste en az kaç gerekir.</p>
+        <div class="tablebox"><table><thead><tr><th>Ders</th><th class="r">Şu an</th><th class="r">Gereken</th></tr></thead><tbody id="solve"></tbody></table></div>
+      </section>
+    </div>
+
+    <details class="sheet" id="lockedBox">
+      <summary id="lockedSummary">1ère'den kilitli katsayılar</summary>
+      <p class="sub mt" id="lockedNote">Resmî notlar; değiştirilebilir ama değişmez — yalnız denetim için açık. Değişiklikler sekme kapanınca silinir.</p>
+      <div class="locked" id="locked"></div>
+      <p class="mt hidden" id="lockedResetWrap"><button type="button" class="btn small" id="lockedReset">Dosyadaki değerlere dön</button></p>
+      <div class="opt" id="optWrap">
+        <input type="checkbox" id="optLvc">
+        <label for="optLvc" id="optLabel"></label>
+      </div>
+      <div id="lvcRow" hidden></div>
+    </details>
+
+    <section class="sheet" aria-labelledby="gradesTitle">
+      <h2 id="gradesTitle">Bu dönemin notları</h2>
+      <p class="sub mt" id="gradesSub"></p>
+      <div class="cards mt" id="grades"></div>
+      <div class="mt hidden" id="upcomingWrap">
+        <h3>Yaklaşan</h3>
+        <ul class="notes" id="upcoming"></ul>
+      </div>
+    </section>
+
+    <section class="notes" aria-label="Notlar">
+      <h2>Okuma notları</h2>
+      <ul id="notes"></ul>
+    </section>
+  </main>
+</div>
+<script type="module" src="a-terminale.js"></script>
+</body>
+</html>

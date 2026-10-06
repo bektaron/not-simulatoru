@@ -1,0 +1,14 @@
+#!/bin/sh
+# İtmeden önce gizlilik denetimi: dosyalar + itilecek commit'lerin mesajları (depo herkese açık).
+# Bulgu varsa ya da node yoksa itme durur (kapalı-güvenli).
+command -v node >/dev/null 2>&1 || { echo "pre-push: node bulunamadı — gizlilik denetimi çalışmadı, itme durduruldu" >&2; exit 1; }
+z=0000000000000000000000000000000000000000
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$z" ] && continue
+  if [ "$remote_sha" = "$z" ]; then range="$local_sha"; else range="$remote_sha..$local_sha"; fi
+  node scripts/privacy-check.mjs "--messages=$range" >/dev/null 2>&1 || {
+    echo "pre-push: gizlilik denetimi bulgu verdi, itme durduruldu — ayrıntı: node scripts/privacy-check.mjs --messages=$range" >&2
+    exit 1
+  }
+done
+exit 0

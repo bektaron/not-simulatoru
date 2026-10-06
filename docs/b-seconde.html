@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; form-action 'none'; base-uri 'self'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Öğrenci B — Seconde Simülatörü</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <nav aria-label="Sayfalar">
+      <a href="index.html">Giriş</a>
+      <a href="a-terminale.html">Öğrenci A — Terminale</a>
+      <a href="b-seconde.html" aria-current="page">Öğrenci B — Seconde</a>
+    </nav>
+    <span class="tools"><button type="button" class="btn small" id="pdfBtn" title="PDF olarak kaydet / yazdır">PDF</button><button type="button" class="btn small" id="theme">Tema</button></span>
+  </div>
+  <div id="banner" class="banner hidden"></div>
+
+  <header>
+    <div class="eyebrow">Seconde générale et technologique · 2026-27</div>
+    <h1 id="title">Seconde Simülatörü</h1>
+    <p class="lead" id="lead">Trimestre ortalaması ve 1ère spécialité seçimi için bac 2029 keşif aracı.</p>
+  </header>
+
+  <div id="empty" class="sheet hidden"></div>
+
+  <main id="main" class="hidden">
+    <div class="tabs" role="tablist" aria-label="Bölümler">
+      <button type="button" role="tab" id="tab-trim" aria-controls="panel-trim" aria-selected="true">Trimestre ortalaması</button>
+      <button type="button" role="tab" id="tab-bac" aria-controls="panel-bac" aria-selected="false">Bac 2029 projeksiyonu</button>
+    </div>
+
+    <section id="panel-trim" role="tabpanel" aria-labelledby="tab-trim" class="panel mt">
+      <div class="banner demo" id="coefWarn"><span class="label">Teyitsiz</span><span id="coefNote"></span></div>
+      <div class="scen" id="periods" role="group" aria-label="Dönem seç"></div>
+      <section class="sheet" aria-label="Özet">
+        <div class="band">
+          <div>
+            <div class="eyebrow" id="genTitle">Genel ortalama</div>
+            <div class="big" id="general">–</div>
+            <span class="pill acc" id="genSub">–</span>
+          </div>
+          <div>
+            <div class="eyebrow">Not sayısı</div>
+            <div class="mid" id="gradeCount">–</div>
+            <div class="sub" id="tempCount"></div>
+          </div>
+          <div>
+            <div class="eyebrow">En yüksek ders</div>
+            <div class="mid" id="bestSubj">–</div>
+            <div class="sub" id="bestLabel"></div>
+          </div>
+          <div>
+            <div class="eyebrow">En düşük ders</div>
+            <div class="mid" id="worstSubj">–</div>
+            <div class="sub" id="worstLabel"></div>
+          </div>
+        </div>
+      </section>
+      <section class="sheet solver" aria-label="Hedef ortalama">
+        <h2>Hedefe ne lazım?</h2>
+        <label class="mt" for="sRange">Trimestre genel ortalaması hedefi</label>
+        <div class="target">
+          <input type="range" id="sRange" min="8" max="20" step="0.1" aria-label="Trimestre hedefi">
+          <input type="number" id="sNum" min="8" max="20" step="0.1" inputmode="decimal" aria-label="Trimestre hedefi (sayı)">
+          <span class="pill acc" id="sNow">–</span>
+        </div>
+        <div class="mt"><span class="sub" id="sCountLabel">Her derste bu dönem kalan not sayısı (katsayı 1, /20):</span>
+          <div class="seg" id="sCount" role="group" aria-labelledby="sCountLabel"></div></div>
+        <div class="need">
+          <div class="eyebrow">Her dersin sonraki notları en az</div>
+          <div class="mid" id="sNeed">–</div>
+          <div class="sub" id="sNeedSub"></div>
+        </div>
+        <h3 class="mt">Tek başına</h3>
+        <p class="sub">Diğer dersler olduğu gibi kalırsa, yalnız o dersteki sonraki not(lar) en az kaç olmalı.</p>
+        <div class="tablebox"><table><thead><tr><th>Ders</th><th class="r">Şu an</th><th class="r">Gereken</th></tr></thead><tbody id="sSolve"></tbody></table></div>
+      </section>
+      <section aria-label="Dersler">
+        <h2>Dersler</h2>
+        <p class="sub mt">"Ya şu sınavdan X alırsa?" için geçici not ekleyin: ekranda hesaba girer, hiçbir yere yazılmaz, sekme kapanınca silinir.</p>
+        <div class="cards mt" id="cards"></div>
+      </section>
+      <section class="sheet" aria-label="Trimestre karşılaştırması">
+        <h2>Trimestre karşılaştırması</h2>
+        <div class="tablebox mt"><table><thead id="cmpHead"></thead><tbody id="cmpBody"></tbody></table></div>
+      </section>
+      <div class="mt hidden" id="upcomingWrap">
+        <h3>Yaklaşan</h3>
+        <ul class="notes" id="upcoming"></ul>
+      </div>
+    </section>
+
+    <section id="panel-bac" role="tabpanel" aria-labelledby="tab-bac" class="panel mt" hidden>
+      <div class="banner demo"><span class="label">Teyitsiz</span><span id="bacNote"></span></div>
+      <section class="sheet" aria-label="Spécialité adayları">
+        <h2>Üç spécialité adayı</h2>
+        <p class="sub mt">1ère'de üç spécialité alınır; biri Tle'ye geçerken bırakılır ve 1ère ortalamasıyla katsayı 8 olarak kontrol continu'ya girer. Kalan ikisi Tle'de 16 + 16 katsayılı sınav olur. Her aday için tahmini not girin.</p>
+        <div class="cands mt" id="cands"></div>
+        <p class="sub mt" id="candsNote"></p>
+      </section>
+      <section aria-label="Bırakma senaryoları">
+        <h2>Hangisi bırakılırsa?</h2>
+        <div class="scen-cards mt" id="scenCards"></div>
+      </section>
+      <section class="sheet" aria-label="Diğer dersler">
+        <h2 id="baseTitle">Diğer dersler (tahmin)</h2>
+        <p class="sub mt">Seconde ortalamalarından tohumlanır; kaydırıcılarla değiştirilebilir. Değişiklikler sekme kapanınca silinir.</p>
+        <div class="opt" id="optWrap"><input type="checkbox" id="optLvc"><label for="optLvc" id="optLabel"></label></div>
+        <div class="hdr mt"><span>Ders</span><span>Kats.</span><span>Not</span><span></span><span>+1 puan</span><span>Puan</span></div>
+        <div class="ledger" id="baseLedger"></div>
+      </section>
+    </section>
+
+    <section class="notes mt" aria-label="Notlar">
+      <h2>Okuma notları</h2>
+      <ul id="notes"></ul>
+    </section>
+  </main>
+</div>
+<script type="module" src="b-seconde.js"></script>
+</body>
+</html>

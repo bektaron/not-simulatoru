@@ -1,0 +1,36 @@
+{
+  "_comment": "ÖRNEK VERİ — uydurma değerler. Gerçek notlar yalnız yerel kayıtta (data/) durur.",
+  "example": true,
+  "schemaVersion": 1,
+  "student": "B",
+  "displayName": "Öğrenci B",
+  "track": "bac",
+  "updatedAt": "2026-09-28T18:00:00+03:00",
+  "source": "ÖRNEK · uydurma",
+  "period": { "type": "trimestre", "index": 1 },
+  "pronoteOverall": { "period": 1, "value": 13.47 },
+  "grades": [
+    { "date": "2026-09-12", "subjectId": "fr", "label": "Devoir 1", "note": 12, "outOf": 20, "coef": 1, "classAvg": 11.4 },
+    { "date": "2026-09-26", "subjectId": "fr", "label": "Devoir 2", "note": 14, "outOf": 20, "coef": 2, "classAvg": 12.1 },
+    { "date": "2026-09-16", "subjectId": "maths", "label": "DS 1", "note": 15, "outOf": 20, "coef": 2, "classAvg": 12.3 },
+    { "date": "2026-09-23", "subjectId": "maths", "label": "Interro", "note": 13, "outOf": 20, "coef": 1, "classAvg": 11.9 },
+    { "date": "2026-09-18", "subjectId": "hg", "label": "Contrôle", "note": 11.5, "outOf": 20, "coef": 1, "classAvg": 11.0 },
+    { "date": "2026-09-19", "subjectId": "lva", "label": "Oral", "note": 16, "outOf": 20, "coef": 1, "classAvg": 13.8 },
+    { "date": "2026-09-25", "subjectId": "lva", "label": "Écrit", "note": 15, "outOf": 20, "coef": 1, "classAvg": 13.1 },
+    { "date": "2026-09-22", "subjectId": "lvb", "label": "Contrôle", "note": 12, "outOf": 20, "coef": 1, "classAvg": 12.6 },
+    { "date": "2026-09-24", "subjectId": "ses", "label": "Contrôle", "note": 13, "outOf": 20, "coef": 1, "classAvg": 12.0 },
+    { "date": "2026-09-29", "subjectId": "snt", "label": "Projet", "note": 8.5, "outOf": 10, "coef": 1, "classAvg": 7.2 },
+    { "date": "2026-09-17", "subjectId": "pc", "label": "DS 1", "note": 10.5, "outOf": 20, "coef": 2, "classAvg": 10.9 },
+    { "date": "2026-09-20", "subjectId": "svt", "label": "Contrôle", "note": 12.5, "outOf": 20, "coef": 1, "classAvg": 12.2 },
+    { "date": "2026-09-27", "subjectId": "eps", "label": "Cycle 1", "note": 14, "outOf": 20, "coef": 1, "classAvg": 13.5 },
+    { "date": "2026-09-30", "subjectId": "emc", "label": "Exposé", "note": 15, "outOf": 20, "coef": 1, "classAvg": 13.0 },
+    { "date": "2026-09-28", "subjectId": "euro", "label": "DNL", "note": 13, "outOf": 20, "coef": 1, "classAvg": 12.4 }
+  ],
+  "upcoming": [
+    { "date": "2026-10-08", "subjectId": "maths", "label": "DS 2" },
+    { "date": "2026-10-12", "subjectId": "pc", "label": "TP noté" }
+  ],
+  "notes": [
+    "Bu bir ÖRNEK dosyadır: tüm notlar uydurmadır. Gerçek veri yalnız yerel kayıtta (data/) tutulur."
+  ]
+}

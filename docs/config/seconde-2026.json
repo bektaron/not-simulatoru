@@ -1,0 +1,30 @@
+{
+  "id": "seconde-2026",
+  "label": "Seconde 2026-27 — Trimestre ortalaması",
+  "track": "bac",
+  "periodSystem": "trimestre",
+  "periods": [
+    { "index": 1, "label": "1. trimestre", "short": "T1" },
+    { "index": 2, "label": "2. trimestre", "short": "T2" },
+    { "index": 3, "label": "3. trimestre", "short": "T3" }
+  ],
+  "coefficientsVerified": false,
+  "coefficientsNote": "Okulun moyenne générale hesabında kullandığı ders katsayıları bilinmiyor. Tüm katsayılar varsayılan 1. Karneden teyit edilince yalnız bu dosya düzenlenir.",
+  "scale": { "min": 0, "max": 20, "step": 0.25 },
+  "subjects": [
+    { "id": "fr", "label": "Français", "coef": 1 },
+    { "id": "maths", "label": "Mathématiques", "coef": 1 },
+    { "id": "hg", "label": "Histoire-géographie", "coef": 1 },
+    { "id": "lva", "label": "LVA (anglais)", "coef": 1 },
+    { "id": "lvb", "label": "LVB", "coef": 1 },
+    { "id": "ses", "label": "SES", "coef": 1 },
+    { "id": "snt", "label": "SNT", "coef": 1 },
+    { "id": "pc", "label": "Physique-chimie", "coef": 1 },
+    { "id": "svt", "label": "SVT", "coef": 1 },
+    { "id": "eps", "label": "EPS", "coef": 1 },
+    { "id": "emc", "label": "EMC", "coef": 1 },
+    { "id": "lvc", "label": "LVC (opsiyon)", "coef": 1, "optional": true },
+    { "id": "euro", "label": "Section européenne (anglais + DNL histoire-géo)", "coef": 1, "optional": true },
+    { "id": "sl", "label": "Sciences et laboratoire (opsiyon)", "coef": 1, "optional": true }
+  ]
+}

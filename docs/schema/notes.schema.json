@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bektaron.github.io/ders-simulatoru/schema/notes.schema.json",
+  "title": "Not simülatörü veri dosyası (a.json / b.json)",
+  "description": "Private veri reposundaki ham not dosyası. Hesaplanmış alan (ortalama, mention) yazılmaz. subjectId değerleri ilgili config'teki ders kimlikleriyle birebir eşleşmelidir (bu kontrol şema dışında, validate.js checkAgainstConfig ile yapılır).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "student", "displayName", "track", "updatedAt", "grades"],
+  "properties": {
+    "_comment": { "type": "string", "maxLength": 300 },
+    "example": { "type": "boolean", "description": "Yalnız kod reposundaki uydurma örnek dosyalarda true." },
+    "schemaVersion": { "type": "integer", "enum": [1] },
+    "student": { "type": "string", "enum": ["A", "B"] },
+    "displayName": { "$ref": "#/$defs/label" },
+    "track": { "type": "string", "enum": ["bac", "ib"] },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "source": { "$ref": "#/$defs/label" },
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "index"],
+      "properties": {
+        "type": { "type": "string", "enum": ["semestre", "trimestre"] },
+        "index": { "type": "integer", "minimum": 1, "maximum": 3 }
+      }
+    },
+    "locked": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "note"],
+        "properties": {
+          "id": { "$ref": "#/$defs/subjectId" },
+          "note": { "$ref": "#/$defs/note20" },
+          "coef": { "type": "number", "minimum": 0, "maximum": 100 },
+          "source": { "$ref": "#/$defs/label" }
+        }
+      }
+    },
+    "grades": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date", "subjectId", "note"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "subjectId": { "$ref": "#/$defs/subjectId" },
+          "label": { "$ref": "#/$defs/label" },
+          "note": { "type": ["number", "null"], "minimum": 0, "maximum": 100, "description": "Ham not; null = Abs/Disp/N.Not (ortalamaya girmez). Abs* ve N.Rdu* Pronote'ta 0 sayılır, 0 yazılır." },
+          "outOf": { "type": "number", "minimum": 1, "maximum": 100, "description": "Baraj, varsayılan 20." },
+          "coef": { "type": "number", "minimum": 0, "maximum": 100, "description": "Not katsayısı, varsayılan 1." },
+          "outOf20": { "type": "boolean", "description": "Pronote 'Ramener sur 20': false ise puanlar baremle havuzlanır; yoksa true sayılır." },
+          "bonus": { "type": "boolean", "description": "Pronote bonus notu: yalnız barem yarısının üstü ortalamaya eklenir." },
+          "optional": { "type": "boolean", "description": "Pronote isteğe bağlı (facultatif) not: yalnız ortalamayı yükseltiyorsa sayılır." },
+          "classAvg": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "period": { "type": "integer", "minimum": 1, "maximum": 3, "description": "Dönem; yoksa dosyadaki period.index." }
+        }
+      }
+    },
+    "upcoming": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date", "subjectId"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "subjectId": { "$ref": "#/$defs/subjectId" },
+          "label": { "$ref": "#/$defs/label" }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kotu": { "$ref": "#/$defs/scenarioMap" },
+        "gercekci": { "$ref": "#/$defs/scenarioMap" },
+        "hedef": { "$ref": "#/$defs/scenarioMap" }
+      }
+    },
+    "subjectLabels": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 60 },
+      "description": "Config'teki genel yuva adlarının (spe1, lvb …) yerine görünen ad."
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": { "type": "boolean" },
+      "description": "Varsayılan açık opsiyonlar, ör. {\"lvc\": true}."
+    },
+    "pronoteOverall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period", "value"],
+      "properties": {
+        "period": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "value": { "$ref": "#/$defs/note20" }
+      },
+      "description": "Pronote'un kendi genel ortalaması (ham kaynak değeri, MyTaskBar yazar); simülatör okul katsayılarını bununla sınar."
+    },
+    "pinned": {
+      "type": "array",
+      "maxItems": 40,
+      "items": { "$ref": "#/$defs/subjectId" },
+      "description": "Hedef dağıtımında varsayılan olarak sabit tutulan (kilitsiz) dersler, ör. zayıf olunan ders; sayfada oturum boyunca değiştirilebilir."
+    },
+    "notes": {
+      "type": "array",
+      "maxItems": 30,
+      "items": { "type": "string", "maxLength": 400 },
+      "description": "Okuma notları; sayfanın altında madde olarak gösterilir."
+    }
+  },
+  "$defs": {
+    "subjectId": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+    "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "note20": { "type": "number", "minimum": 0, "maximum": 20 },
+    "scenarioMap": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/note20" }
+    }
+  }
+}

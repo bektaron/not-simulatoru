@@ -1,0 +1,74 @@
+{
+  "id": "bac-2029",
+  "label": "Bac 2029 — projeksiyon (keşif aracı)",
+  "track": "bac",
+  "verified": false,
+  "basedOn": "bac-2027",
+  "source": "2027 katsayı yapısının kopyası. 17-9-2026 itibarıyla 2028–2029 oturumları için katsayı değişikliği yayımlanmadı (BO özel sayı 4: biçim değişiklikleri, katsayılar aynı). 2029 için okul teyidi yok; yalnız spécialité seçimini keşfetmek için.",
+  "scale": { "min": 0, "max": 20, "step": 0.25 },
+  "gauge": { "min": 6, "max": 20 },
+  "mentions": [
+    { "min": 0, "level": "refuse", "label": "Ajourné", "tone": "bad" },
+    { "min": 8, "level": "rattrapage", "label": "Rattrapage (sözlü telafi)", "tone": "bad" },
+    { "min": 10, "level": "admis", "label": "Admis · mention yok", "short": "Bac", "tone": "warn" },
+    { "min": 12, "level": "assez-bien", "label": "Assez bien", "short": "Assez bien", "tone": "acc" },
+    { "min": 14, "level": "bien", "label": "Bien", "short": "Bien", "tone": "good" },
+    { "min": 16, "level": "tres-bien", "label": "Très bien", "short": "Très bien", "tone": "good" },
+    { "min": 18, "level": "felicitations", "label": "Très bien · félicitations", "short": "Félicitations", "tone": "good" }
+  ],
+  "groups": [
+    { "id": "exam-1ere", "label": "1ère sınavları", "locked": false },
+    { "id": "cc-1ere", "label": "1ère kontrol continu", "locked": false },
+    { "id": "exam-tle", "label": "Terminale sınavları", "locked": false },
+    { "id": "cc-tle", "label": "Terminale kontrol continu", "locked": false }
+  ],
+  "subjects": [
+    { "id": "fr_e", "label": "Français écrit", "coef": 5, "group": "exam-1ere", "locked": false, "seedFrom": ["fr"], "step": 1 },
+    { "id": "fr_o", "label": "Français oral", "coef": 5, "group": "exam-1ere", "locked": false, "seedFrom": ["fr"], "step": 1 },
+    { "id": "ma_a", "label": "Maths anticipées", "coef": 2, "group": "exam-1ere", "locked": false, "seedFrom": ["maths"], "step": 1 },
+    { "id": "hg1", "label": "Histoire-géo 1ère", "coef": 3, "group": "cc-1ere", "locked": false, "seedFrom": ["hg"], "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "lva1", "label": "LVA 1ère", "coef": 3, "group": "cc-1ere", "locked": false, "seedFrom": ["lva"], "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "lvb1", "label": "LVB 1ère", "coef": 3, "group": "cc-1ere", "locked": false, "seedFrom": ["lvb"], "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "es1", "label": "Ens. scientifique 1ère", "coef": 3, "group": "cc-1ere", "locked": false, "seedFrom": ["pc", "svt"], "hint": "maths spé seçilmezse 'maths spécifique' notları bu ortalamanın %40'ı", "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "emc1", "label": "EMC 1ère", "coef": 1, "group": "cc-1ere", "locked": false, "seedFrom": ["emc"], "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "spe_drop", "label": "Bırakılan spécialité", "coef": 8, "group": "cc-1ere", "locked": false, "role": "spe-dropped", "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "spe1", "label": "Spécialité 1", "coef": 16, "group": "exam-tle", "locked": false, "role": "spe-kept", "step": 1 },
+    { "id": "spe2", "label": "Spécialité 2", "coef": 16, "group": "exam-tle", "locked": false, "role": "spe-kept", "step": 1 },
+    { "id": "philo", "label": "Philosophie", "coef": 8, "group": "exam-tle", "locked": false, "seedFrom": ["fr"], "step": 1 },
+    { "id": "go", "label": "Grand oral", "coef": 8, "group": "exam-tle", "locked": false, "seedFrom": [], "step": 1 },
+    { "id": "eps", "label": "EPS", "coef": 6, "group": "cc-tle", "locked": false, "seedFrom": ["eps"], "hint": "CCF 3 sınav ortalaması · tam puan", "step": 1, "rounding": "round-1" },
+    { "id": "hg", "label": "Histoire-géo", "coef": 3, "group": "cc-tle", "locked": false, "seedFrom": ["hg"], "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "lva", "label": "LVA", "coef": 3, "group": "cc-tle", "locked": false, "seedFrom": ["lva"], "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "lvb", "label": "LVB", "coef": 3, "group": "cc-tle", "locked": false, "seedFrom": ["lvb"], "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "es", "label": "Ens. scientifique", "coef": 3, "group": "cc-tle", "locked": false, "seedFrom": ["pc", "svt"], "step": 0.1, "rounding": "ceil-0.1" },
+    { "id": "emc", "label": "EMC", "coef": 1, "group": "cc-tle", "locked": false, "seedFrom": ["emc"], "step": 0.1, "rounding": "ceil-0.1" }
+  ],
+  "options": [
+    {
+      "id": "lvc",
+      "label": "LVC (opsiyon)",
+      "verified": true,
+      "default": false,
+      "note": "Her takip yılı için katsayı 2, 100'e eklenir (arrêté 16-7-2018 m. 2-1); bonus değildir, takip edildiyse sayılması zorunludur. Bu projeksiyon iki yıl takibi varsayar.",
+      "subjects": [
+        { "id": "lvc1", "label": "LVC 1ère", "coef": 2, "group": "cc-1ere", "locked": false, "seedFrom": ["lvc"], "step": 0.1, "rounding": "ceil-0.1" },
+        { "id": "lvc", "label": "LVC Tle", "coef": 2, "group": "cc-tle", "locked": false, "seedFrom": ["lvc"], "step": 0.1, "rounding": "ceil-0.1" }
+      ]
+    }
+  ],
+  "specialites": [
+    { "id": "maths", "label": "Mathématiques", "seedFrom": ["maths"] },
+    { "id": "pc", "label": "Physique-chimie", "seedFrom": ["pc"] },
+    { "id": "svt", "label": "SVT", "seedFrom": ["svt"] },
+    { "id": "ses", "label": "SES", "seedFrom": ["ses"] },
+    { "id": "hggsp", "label": "HGGSP", "seedFrom": ["hg"] },
+    { "id": "hlp", "label": "Humanités, littérature et philosophie", "seedFrom": ["fr"] },
+    { "id": "llce_anglais", "label": "LLCE anglais", "seedFrom": ["lva"] },
+    { "id": "amc", "label": "LLCE anglais, monde contemporain", "seedFrom": ["lva"] },
+    { "id": "nsi", "label": "NSI", "seedFrom": ["snt"] },
+    { "id": "si", "label": "Sciences de l'ingénieur", "seedFrom": ["pc"] },
+    { "id": "arts", "label": "Arts", "seedFrom": [] },
+    { "id": "llca", "label": "LLCA (latin / grec)", "seedFrom": [] }
+  ],
+  "specialitesNote": "Ulusal liste; okulun fiilen sunduğu spécialité'ler teyit edilmeli."
+}

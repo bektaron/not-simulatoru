@@ -1,0 +1,22 @@
+{
+  "name": "ders-simulatoru",
+  "version": "0.1.0",
+  "description": "İki öğrenci için not / bac simülatörü — statik site, bağımlılıksız.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "privacy": "node scripts/privacy-check.mjs",
+    "privacy:history": "node scripts/privacy-check.mjs --history",
+    "check": "npm test && npm run privacy",
+    "serve": "python -m http.server 8081 --bind 127.0.0.1",
+    "validate": "node scripts/validate-data.mjs data/a.json data/b.json",
+    "hooks": "git config core.hooksPath scripts/hooks",
+    "web:sifre": "node scripts/web-sifre.mjs",
+    "web:yayin": "node scripts/web-yayin.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "UNLICENSED"
+}
