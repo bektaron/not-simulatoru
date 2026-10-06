@@ -371,6 +371,24 @@ test('buildBacNotes güncel: notu olan derste yıl içi Pronote ortalaması (ız
   assert.deepEqual(none.notes, E.buildBacNotes(cfg, { ...exA, grades: [] }, 'gercekci').notes);
 });
 
+test('knownAverage: yalnız kilitli + bu yıl notu olan dersler; tahminler girmez, senaryodan bağımsız', () => {
+  // cfgT: L kilitli ×2 · a sınav ×2 (tam puan) · b kontrol continu ×1 (↑0,1) · p sınav ×1 — toplam 6
+  const data = { locked: [{ id: 'L', note: 10 }], period: { type: 'semestre', index: 1 },
+    grades: [{ date: '2026-09-01', subjectId: 'a', note: 13 }, { date: '2026-09-02', subjectId: 'b', note: 12.34 }, { date: '2026-09-03', subjectId: 'p', note: null }] };
+  const k = E.knownAverage(cfgT, data);
+  // L 10×2 + a 13×2 + b ⌈12,34⌉₀,₁ = 12,4 ×1 → 58,4 / 5 = 11,68 · p notsuz (Abs) → girmez
+  assert.ok(Math.abs(k.raw - 58.4 / 5) < 1e-12, String(k.raw));
+  assert.equal(k.final, 11.68);
+  assert.deepEqual([k.coef, k.total, k.lockedCoef, k.currentCoef], [5, 6, 2, 3]);
+  // bu yıl hiç not yok → yalnız kilitli
+  const only = E.knownAverage(cfgT, { ...data, grades: [] });
+  assert.deepEqual([only.final, only.coef, only.currentCoef], [10, 2, 0]);
+  // kilitli harita verilirse o kullanılır (sayfadaki denetim düzeltmesi)
+  assert.equal(E.knownAverage(cfgT, { ...data, grades: [] }, { locked: { L: 14 } }).final, 14);
+  // hiçbir şey yok → null
+  assert.equal(E.knownAverage(cfgT, { grades: [] }).final, null);
+});
+
 test('effortBreakdown: önce/sonra resmî not, emek, genele katkı; sabit ders emeksiz en sonda', () => {
   const r = E.distributeToTarget(cfgT, notesT, 12, { pinned: ['p'] });
   const b = E.effortBreakdown(cfgT, notesT, r.notes, { pinned: ['p'] });

@@ -68,6 +68,7 @@ async function main() {
       estimated: new Set(),
       current: new Set(), // 'güncel' senaryoda Pronote ortalamasından gelen dersler
       counts: {},
+      avgs: {}, // ders başına bu yılın Pronote ortalaması (etikette, yuvarlanmamış)
       source: 'file',
       periods: {},
       effort: null, // hedef ayarı sonrası emek dökümü (renderLever)
@@ -260,7 +261,7 @@ async function main() {
         if (state.estimated.has(id) && !tag) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag est', text: 'tahmin' }), r.el.querySelector('.name small'));
         if (!state.estimated.has(id) && tag) tag.remove();
         const cur = r.el.querySelector('.tag.cur');
-        const curText = `güncel · ${state.counts[id] || 0} not`;
+        const curText = `güncel · ${state.counts[id] || 0} not${E.isNote(state.avgs[id]) ? ` · ort. ${fmt(state.avgs[id])}` : ''}`;
         if (state.current.has(id) && !cur) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag cur', text: curText, title: 'Bu yılın Pronote ortalaması (dönem ortalamalarının ortalaması)' }), r.el.querySelector('.name small'));
         else if (state.current.has(id) && cur) cur.textContent = curText;
         if (!state.current.has(id) && cur) cur.remove();
@@ -290,6 +291,7 @@ async function main() {
       state.estimated = new Set(built.estimated);
       state.current = new Set(built.current || []);
       state.counts = built.counts || {};
+      state.avgs = built.current ? built.averages || {} : {};
       state.source = built.source;
       state.periods = built.periods;
       state.scenario = name;
@@ -318,6 +320,11 @@ async function main() {
       const T = E.finalBac(cfg, notes);
       $('#final').textContent = fmt(T.final);
       setPill($('#mention'), E.mention(T.raw, cfg));
+      // şu ana kadarki notlarla (tahminler hariç): 1ère resmî + bu yıl notu olan dersler — senaryodan bağımsız
+      const K = E.knownAverage(cfg, data, { locked: lockedNotes() });
+      $('#knownAvg').textContent = !E.isNote(K.final) ? ''
+        : K.currentCoef > 0 ? `Şu ana kadarki notlarla: ${fmt(K.final)} · ${K.coef}/${K.total} kats. (tahminler hariç)`
+          : `Şu ana kadarki notlarla: ${fmt(K.final)} · yalnız 1ère (${K.coef}/${K.total} kats.)`;
       $('#lockedAvg').textContent = fmt(T.lockedAvg);
       $('#lockedCoef').textContent = `${T.lockedCoef} katsayı · ${fmt1(T.lockedSum)} puan`;
       $('#restAvg').textContent = fmt(T.restAvg);
@@ -471,6 +478,7 @@ async function main() {
       state.estimated = new Set(built.estimated);
       state.current = new Set(built.current || []);
       state.counts = built.counts || {};
+      state.avgs = built.averages || {};
       state.source = built.source;
       state.periods = built.periods;
       seg.clear();

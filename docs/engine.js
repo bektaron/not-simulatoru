@@ -15,6 +15,7 @@
  *   requiredAverage(config, notes, target, {pinned}) → serbest derslerde gereken ort. | 'unreachable' | 'safe' | null
  *   distributeToTarget(config, notes, target, {pinned}) → {reachable, notes, delta, raw, final, best, free}
  *   effortBreakdown(config, before, after, {pinned}) → {rows:[{subjectId, before, after, delta, gain, pinned}], rawBefore, rawAfter}
+ *   knownAverage(config, data, {locked})          → {final, raw, coef, total, lockedCoef, currentCoef} (tahminler hariç)
  *   leverage(config, opts)                         → [{subjectId, label, coef, deltaPerPoint}]
  *   termAverage(config, gradesBySubject)           → {subjects, general}
  *   requiredTermNote(config, bySubject, target, {subjectId, count, coef}) → number | 'unreachable' | 'safe'
@@ -633,6 +634,26 @@ function buildCurrentNotes(config, data) {
     else estimated.push(s.id);
   }
   return { notes, source: 'current', estimated, current, counts, averages, periods, baseSource: base.source };
+}
+
+/**
+ * "Şu ana kadarki notlarla" bac ortalaması: yalnız bilinen notlar — kilitli dersler (1ère resmî; `locked`
+ * verilirse o harita, yoksa veri dosyası) + bu yıl Pronote'ta notu olan değişken dersler ('güncel' senaryodaki
+ * değerle, aynı resmî yuvarlamayla). Tahmindeki dersler girmez; senaryo ve kaydırıcılardan bağımsızdır.
+ * → { final (aşağı kesik), raw, coef (sayılan), total (tüm katsayı), lockedCoef, currentCoef } · not yoksa final/raw null
+ */
+export function knownAverage(config, data, { locked } = {}) {
+  const lockedNotes = locked || lockedToNotes(data && data.locked);
+  const cur = buildCurrentNotes(config, data);
+  const curSet = new Set(cur.current);
+  let num = 0, lockedCoef = 0, currentCoef = 0;
+  for (const s of config.subjects || []) {
+    if (s.locked && isNote(lockedNotes[s.id])) { num += officialNote(s, lockedNotes[s.id]) * s.coef; lockedCoef += s.coef; }
+    else if (!s.locked && curSet.has(s.id)) { num += officialNote(s, cur.notes[s.id]) * s.coef; currentCoef += s.coef; }
+  }
+  const coef = lockedCoef + currentCoef;
+  const raw = coef > 0 ? num / coef : null;
+  return { final: raw === null ? null : floor2(raw), raw, coef, total: coefTotals(config).total, lockedCoef, currentCoef };
 }
 
 /* ------------------------------------------------------------------ */
