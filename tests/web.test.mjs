@@ -106,6 +106,7 @@ test('yayın planı: notlar değişince · anahtar değişince · dosya yoksa ·
   const data = { ...exA };
   const fp = fingerprint(data);
   assert.equal(fingerprint({ ...data, updatedAt: '2026-10-07T08:00:00+02:00' }), fp);
+  assert.equal(fingerprint({ ...data, source: 'MyTaskBar · Pronote 2026-10-07 08:00' }), fp); // çekim saati notları değiştirmez
   assert.notEqual(fingerprint({ ...data, grades: [] }), fp);
   const fresh = new Date(NOW - 3600000).toISOString();
   const state = { a: { fp, salt: SALT, at: fresh } };

@@ -25,10 +25,14 @@ const STUDENTS = ['a', 'b'];
 
 const readJson = (p) => { try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; } };
 
-/** Not içeriğinin parmak izi: updatedAt hariç (her Pronote yenilemesinde değişir, notlar değişmeden). */
+/**
+ * Not içeriğinin parmak izi: updatedAt ve source hariç — ikisi de her Pronote yenilemesinde değişir (source
+ * çekim saatini taşır: "MyTaskBar · Pronote 2026-10-06 16:44"), notlar değişmeden. O29 ölçümü: bunlar dahilken
+ * her yenileme "notlar değişti" diye yeni commit + yayın üretiyordu.
+ */
 export function fingerprint(data) {
-  const { updatedAt, ...rest } = data || {};
-  void updatedAt;
+  const { updatedAt, source, ...rest } = data || {};
+  void updatedAt; void source;
   return createHash('sha256').update(JSON.stringify(rest)).digest('hex');
 }
 
