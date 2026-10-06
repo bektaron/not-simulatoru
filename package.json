@@ -13,7 +13,8 @@
     "validate": "node scripts/validate-data.mjs data/a.json data/b.json",
     "hooks": "git config core.hooksPath scripts/hooks",
     "web:sifre": "node scripts/web-sifre.mjs",
-    "web:yayin": "node scripts/web-yayin.mjs"
+    "web:yayin": "node scripts/web-yayin.mjs",
+    "web:baglanti": "node scripts/web-baglanti.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -43,7 +43,7 @@ export function safeMessage(mode, { status } = {}) {
   switch (mode) {
     case Mode.LOCAL: return 'Yerel kayıttan okundu.';
     case Mode.WEB: return 'Web kaydından (şifreli) okundu.';
-    case Mode.LOCKED: return 'Notlar şifreli. Görmek için şifreyi girin.';
+    case Mode.LOCKED: return 'Notlar şifreli. Görmek için şifreyi girin ya da size verilen özel bağlantıyı açın.';
     case Mode.MISSING: return 'Bu öğrenci için kayıt yok (data/ klasöründe dosya bulunamadı). MyTaskBar Pronote\'tan yenileyince burada görünür.';
     case Mode.INVALID_DATA: return 'Kayıt dosyası okunabildi ama şemaya uymuyor. Ayrıntılar aşağıda.';
     case Mode.DEMO: return 'ÖRNEK VERİ — uydurma notlar gösteriliyor; gerçek kayıt değil.';
@@ -59,8 +59,10 @@ export function createDataClient({
   webBase = 'web/',
   demoBase = 'examples/',
   keyStore = null,
+  linkKey = null, // özel bağlantıdan gelen anahtar (hex) — şifresiz giriş
   validateData = () => [],
 } = {}) {
+  let linkCheck = null; // Promise<boolean>: bağlantı anahtarı kaydı çözüyor mu
   if (typeof fetchFn !== 'function') throw new Error('fetch gerekli');
   if (![localBase, webBase, demoBase].every(isLocalPath)) throw new Error('Yalnız yerel (göreli) yol kullanılabilir');
   if (source !== 'local' && source !== 'web') throw new Error(`Bilinmeyen kaynak: ${source}`);
@@ -123,8 +125,20 @@ export function createDataClient({
     try { env = JSON.parse(await res.text()); } catch { env = null; }
     if (!isEnvelope(env)) return result(student, Mode.INVALID_DATA, { status: res.status, errors: [{ path: '', keyword: 'envelope', message: 'şifreli kayıt biçimi tanınmadı' }] });
     lastEnvelope = env;
-    const keyHex = keyStore ? keyStore.get(env.salt) : null;
-    if (!keyHex) return result(student, Mode.LOCKED, { status: res.status });
+    // özel bağlantıdaki anahtar (#k=…) önce denenir; tutarsa saklanır, sonraki açılışlarda bağlantı gerekmez
+    // A ve B aynı anda yüklenir: deneme tek söz (promise) üzerinden paylaşılır, ikincisi sonucu bekler
+    let linkOk = false;
+    if (linkKey) {
+      if (!linkCheck) {
+        linkCheck = decryptEnvelope(env, linkKey).then(() => {
+          if (keyStore) keyStore.set(env.salt, linkKey, { remember: true });
+          return true;
+        }, () => false);
+      }
+      linkOk = await linkCheck;
+    }
+    const keyHex = (keyStore ? keyStore.get(env.salt) : null) || (linkOk ? linkKey : null);
+    if (!keyHex) return result(student, Mode.LOCKED, { status: res.status, ...(linkKey && !linkOk ? { message: 'Bu bağlantı artık geçmiyor (anahtar değişmiş olabilir). Yeni bağlantıyı açın ya da şifreyi girin.' } : {}) });
     let text;
     try { text = await decryptEnvelope(env, keyHex); } catch {
       keyStore.clear();

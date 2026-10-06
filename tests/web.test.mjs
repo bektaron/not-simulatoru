@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { KDF_ITER, decryptEnvelope, deriveKeyHex, encryptText, fromHex, isEnvelope, randomHex, toHex } from '../docs/crypto.js';
 import { createDataClient, Mode } from '../docs/data.js';
 import { validateNotes } from '../docs/validate.js';
-import { dataSource } from '../docs/ui.js';
+import { dataSource, linkKeyFromHash } from '../docs/ui.js';
+import { pagesUrl } from '../scripts/web-baglanti.mjs';
 import { fingerprint, plan, REPUBLISH_HOURS } from '../scripts/web-yayin.mjs';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
@@ -45,7 +46,7 @@ function memStore() {
   };
 }
 
-async function webClient(files, keyStore) {
+async function webClient(files, keyStore, linkKey = null) {
   const calls = [];
   const fetch = async (url) => {
     calls.push(url);
@@ -53,7 +54,7 @@ async function webClient(files, keyStore) {
     return { status: 200, ok: true, text: async () => files[url] };
   };
   const validateData = (s, d) => validateNotes(d, cfgA, schema).errors;
-  return { c: createDataClient({ fetch, now: () => NOW, source: 'web', keyStore, validateData }), calls };
+  return { c: createDataClient({ fetch, now: () => NOW, source: 'web', keyStore, linkKey, validateData }), calls };
 }
 
 test('web kaynağı: anahtarsız LOCKED · yanlış şifre false · doğru şifre anahtarı saklar → WEB', async () => {
@@ -117,4 +118,32 @@ test('yayın planı: notlar değişince · anahtar değişince · dosya yoksa ·
   const old = { a: { fp, salt: SALT, at: new Date(NOW - (REPUBLISH_HOURS + 1) * 3600000).toISOString() } };
   assert.equal(plan({ inputs, state: old, key, webExists: exists, now: NOW })[0].why, 'tazeleme');
   assert.equal(plan({ inputs, state, key, webExists: exists, now: NOW, force: true })[0].why, 'zorla');
+});
+
+test('özel bağlantı: #k= anahtarı ayrıştırılır; A ve B aynı anda yüklenince ikisi de açılır, anahtar saklanır', async () => {
+  const K = 'ab'.repeat(32);
+  assert.equal(linkKeyFromHash(`#k=${K}`), K);
+  assert.equal(linkKeyFromHash(`#x=1&k=${K.toUpperCase()}`), K);
+  assert.equal(linkKeyFromHash('#k=abc'), null);
+  assert.equal(linkKeyFromHash(''), null);
+  assert.equal(pagesUrl('https://github.com/bektaron/not-simulatoru.git\n'), 'https://bektaron.github.io/not-simulatoru/');
+  assert.equal(pagesUrl('ssh://github.com:Bektaron/not-simulatoru.git'), 'https://bektaron.github.io/not-simulatoru/');
+  assert.equal(pagesUrl('https://example.com/x.git'), null);
+
+  const key = randomHex(32);
+  const envA = await encryptText(JSON.stringify(exA), { keyHex: key, saltHex: SALT, iter: ITER });
+  const envB = await encryptText(JSON.stringify(exA), { keyHex: key, saltHex: SALT, iter: ITER });
+  const store = memStore();
+  const { c } = await webClient({ 'web/a.enc.json': JSON.stringify(envA), 'web/b.enc.json': JSON.stringify(envB) }, store, key);
+  const [a, b] = await Promise.all([c.load('A'), c.load('B')]);
+  assert.equal(a.mode, Mode.WEB);
+  assert.equal(b.mode, Mode.WEB); // ikinci yükleme ilkinin bağlantı denemesini bekler, kilitli kalmaz
+  assert.deepEqual(store.peek(), { salt: SALT, key });
+  // geçersiz bağlantı: kilitli + açıklayıcı ileti, depoya bir şey yazılmaz
+  const store2 = memStore();
+  const { c: c2 } = await webClient({ 'web/a.enc.json': JSON.stringify(envA) }, store2, 'cd'.repeat(32));
+  const r = await c2.load('A');
+  assert.equal(r.mode, Mode.LOCKED);
+  assert.match(r.message, /bağlantı artık geçmiyor/);
+  assert.equal(store2.peek(), null);
 });

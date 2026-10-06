@@ -175,6 +175,22 @@ export const webKeyStore = {
 };
 
 /**
+ * Özel bağlantı (şifresiz giriş): adres …/#k=<64 hex>. `#` sonrası sunucuya hiç gitmez. Anahtar okunur ve adres
+ * çubuğundan silinir (yer imine, geçmişe kalmasın); tutarsa data.js onu cihaza kaydeder.
+ */
+export function linkKeyFromHash(hash) {
+  const m = /(?:^#|&)k=([0-9a-f]{64})(?:&|$)/i.exec(String(hash || ''));
+  return m ? m[1].toLowerCase() : null;
+}
+function takeLinkKey(loc = globalThis.location, hist = globalThis.history) {
+  const key = loc ? linkKeyFromHash(loc.hash) : null;
+  if (key && hist && hist.replaceState) {
+    try { hist.replaceState(null, '', loc.pathname + loc.search); } catch { /* yoksay */ }
+  }
+  return key;
+}
+
+/**
  * Sayfa başlangıcı: config'ler, şema, istemci ve kayıt (yerel ya da şifreli web).
  * configs: { anahtar: url }  — hepsi göreli, yerel dosyalar.
  */
@@ -193,6 +209,7 @@ export async function boot({ student, configs = {}, validateWith }) {
     webBase: 'web/',
     demoBase: 'examples/',
     keyStore: webKeyStore,
+    linkKey: takeLinkKey(),
     validateData,
   });
   const result = student ? await client.load(student) : null;
