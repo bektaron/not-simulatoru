@@ -65,7 +65,8 @@ export function randomPassword() {
 
 async function main() {
   let p1;
-  if (process.argv.includes('--rastgele')) {
+  const random = process.argv.includes('--rastgele');
+  if (random) {
     // geçici şifre: üretilir ve git dışı web-sifre.local.txt'ye yazılır (ekrana basılmaz); sonra elle değiştirilebilir
     p1 = randomPassword();
     try { execFileSync('git', ['check-ignore', '-q', PW_FILE], { cwd: ROOT }); } catch {
@@ -90,7 +91,7 @@ async function main() {
     console.error('UYARI: web-anahtar.local.json git dışı görünmüyor — .gitignore denetlenmeli. Yayın yapılmadı.');
     process.exit(1);
   }
-  console.log('Anahtar yazıldı (web-anahtar.local.json, git dışı; şifrenin kendisi saklanmadı).');
+  console.log(`Anahtar yazıldı (web-anahtar.local.json, git dışı; ${random ? 'geçici şifre yalnız web-sifre.local.txt\'de' : 'şifrenin kendisi saklanmadı'}).`);
   console.log('Kayıtlar yeni anahtarla yayınlanıyor…');
   execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'web-yayin.mjs'), '--force'], { cwd: ROOT, stdio: 'inherit' });
   // özel bağlantı da yeni anahtarla yenilenir (eski bağlantı artık geçmez)
