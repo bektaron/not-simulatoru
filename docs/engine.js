@@ -569,9 +569,11 @@ export function lockedToNotes(locked) {
 /**
  * "Gerçekçi" senaryoyu mevcut ders ortalamalarından türetir.
  * Değişken (kilitsiz) her ders için: notu varsa yıl içi ortalaması (dönem ortalamalarının
- * ortalaması — yıllık ortalamanın resmî tanımı); yoksa mevcut ortalamaların ortalaması
- * (hiç yoksa 10). Değer dersin ızgarasına oturtulur (toSubjectGrid). Doldurulanlar `estimated`'da;
- * `periods` her dersin kaç dönemden türetildiğini verir (1 = yalnız ilk dönemden tahmin).
+ * ortalaması — yıllık ortalamanın resmî tanımı); yoksa `opts.data` verilmişse dersin 1ère notu
+ * (premiereNote: veri `premiere` ya da config eşlemesiyle kilitli not — Philo ← Français écrit,
+ * Grand oral ← Français oral; Üstadım O50, CD-O50-F3 1a); o da yoksa mevcut ortalamaların ortalaması
+ * (hiç yoksa 10). Değer dersin ızgarasına oturtulur (toSubjectGrid). Bu yıl notu olmayanlar `estimated`'da,
+ * bunlardan 1ère notuyla dolanlar ayrıca `premiere`'de; `periods` her dersin kaç dönemden türetildiğini verir.
  */
 export function deriveScenario(config, grades, opts = {}) {
   const { averages: avgs, periods } = yearAverages(grades, opts);
@@ -580,38 +582,47 @@ export function deriveScenario(config, grades, opts = {}) {
   const fallback = known.length ? known.reduce((a, b) => a + b, 0) / known.length : 10;
   const notes = {};
   const estimated = [];
+  const premiere = [];
   for (const s of variable) {
-    if (avgs[s.id] != null) notes[s.id] = toSubjectGrid(s, avgs[s.id]);
-    else { notes[s.id] = toSubjectGrid(s, fallback); estimated.push(s.id); }
+    if (avgs[s.id] != null) { notes[s.id] = toSubjectGrid(s, avgs[s.id]); continue; }
+    const p = opts.data ? premiereNote(s, opts.data) : null;
+    notes[s.id] = toSubjectGrid(s, isNote(p) ? p : fallback);
+    estimated.push(s.id);
+    if (isNote(p)) premiere.push(s.id);
   }
-  return { notes, estimated, averages: avgs, periods };
+  return { notes, estimated, premiere, averages: avgs, periods };
 }
 
 /**
  * Bir senaryo için tam not haritası: kilitli notlar (veri `locked`) +
  * değişken notlar (veri `scenarios[name]`, eksikler türetilmişten tamamlanır;
  * dosyada senaryo yoksa türetilmiş gerçekçi ±2).
- * Dönen: { notes, source: 'file'|'derived'|'mixed', estimated: [...] }
+ * Dönen: { notes, source: 'file'|'derived'|'mixed', estimated: [...] (türetilen, bu yıl notu yok),
+ *   premiere: [...] (estimated'dan 1ère notuyla dolanlar) }
  */
 export function buildBacNotes(config, data, scenarioName = 'gercekci') {
   if (scenarioName === 'guncel') return buildCurrentNotes(config, data);
   const locked = lockedToNotes(data && data.locked);
   const derived = deriveScenario(config, data && data.grades, {
     defaultPeriod: data && data.period ? data.period.index : undefined,
+    data,
   });
   const offset = scenarioName === 'kotu' ? -2 : scenarioName === 'hedef' ? 2 : 0;
   const fileScen = data && data.scenarios && data.scenarios[scenarioName];
   const notes = { ...locked };
-  const estimated = [];
-  let fromFile = 0;
+  let fromFile = 0, fromData = 0;
   for (const s of (config.subjects || []).filter((x) => !x.locked)) {
     const v = fileScen && isNote(fileScen[s.id]) ? fileScen[s.id] : null;
     if (v != null) { notes[s.id] = v; fromFile++; continue; }
     notes[s.id] = clamp(toSubjectGrid(s, derived.notes[s.id] + offset), 0, 20);
-    estimated.push(s.id);
+    fromData++;
   }
-  const source = fromFile === 0 ? 'derived' : estimated.length === 0 ? 'file' : 'mixed';
-  return { notes, source, estimated, averages: derived.averages, periods: derived.periods };
+  // tahmin = türetilen ama bu yıl notu olmayan ders (O50: önceden türetilen her ders 'tahmin' sayılıyordu)
+  const fromFileIds = new Set(Object.keys(fileScen || {}).filter((id) => isNote(fileScen[id])));
+  const estimated = derived.estimated.filter((id) => !fromFileIds.has(id));
+  const premiere = derived.premiere.filter((id) => !fromFileIds.has(id));
+  const source = fromFile === 0 ? 'derived' : fromData === 0 ? 'file' : 'mixed';
+  return { notes, source, estimated, premiere, averages: derived.averages, periods: derived.periods };
 }
 
 /**

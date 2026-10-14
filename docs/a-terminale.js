@@ -66,6 +66,7 @@ async function main() {
       scenario: session.get().scenario || 'guncel',
       var: {},
       estimated: new Set(),
+      premiere: new Set(),
       current: new Set(), // 'güncel' senaryoda Pronote ortalamasından gelen dersler
       counts: {},
       avgs: {}, // ders başına bu yılın Pronote ortalaması (etikette, yuvarlanmamış)
@@ -318,8 +319,14 @@ async function main() {
           + `Tahmin için Kötü / Gerçekçi / Hedef senaryoları. Resmî kural: 1ère ve Terminale ayrı katsayılı ayrı notlardır. Az notla ortalama oynaktır; sınav derslerine Haziran sınavı girer.`;
         return;
       }
-      const src = state.source === 'file' ? 'veri dosyasındaki senaryo' : state.source === 'derived' ? 'dosyada senaryo yok; ders ortalamalarından türetildi' : 'veri dosyası + ders ortalamalarından tamamlandı';
-      const est = state.estimated.size ? ` · "tahmin" etiketli dersler için henüz not yok (${[...state.estimated].map(labelOf).join(', ')}).` : '';
+      const src = state.source === 'file' ? 'veri dosyasındaki senaryo'
+        : state.source === 'derived' ? 'veriden türetildi — notu olan derste bu yılın ortalaması, olmayan derste 1ère notu'
+          : 'veri dosyası + veriden tamamlandı';
+      const prem = [...state.estimated].filter((id) => state.premiere.has(id));
+      const rest = [...state.estimated].filter((id) => !state.premiere.has(id));
+      const est = (prem.length ? ` · bu yıl notu yok, 1ère notundan: ${prem.map(labelOf).join(', ')}` : '')
+        + (rest.length ? ` · bu yıl notu da 1ère notu da yok, bilinen ortalamalardan: ${rest.map(labelOf).join(', ')}` : '')
+        + (state.estimated.size ? ' ("tahmin" etiketli).' : '');
       const nP = Math.max(0, ...Object.values(state.periods || {}));
       const per = state.source !== 'file' && nP > 0
         ? ` · türetilen notlar ${nP === 1 ? 'yalnız ilk dönemden tahmin (yıllık not = dönem ortalamalarının ortalaması)' : `${nP} dönemin ortalamasından`}.`
@@ -339,6 +346,7 @@ async function main() {
       }
       state.var = pick(built.notes, cfg.subjects.filter((s) => !s.locked));
       state.estimated = new Set(built.estimated);
+      state.premiere = new Set(built.premiere || []);
       state.current = new Set(built.current || []);
       state.counts = built.counts || {};
       state.avgs = built.current ? built.averages || {} : {};
@@ -556,22 +564,28 @@ async function main() {
     notesUl.textContent = '';
     for (const n of [...(data.notes || []), ...GENERIC_NOTES]) notesUl.append(el('li', { text: n }));
 
-    /* senaryo tahminleri: dosyadaki Kötü / Gerçekçi değerleri ders ders + her senaryonun kaynağı (Üstadım, O29) */
+    /* senaryo tahminleri: Kötü / Gerçekçi değerleri ders ders + her değerin kaynağı (Üstadım, O29; O50: dosyada
+       senaryo yokken türetilen değerler — "bu yıl" · "1ère" · "ort." — CD-O50-F3 1a · 2a) */
     const scen = data.scenarios || {};
     const scNames = [['kotu', 'Kötü gidiş'], ['gercekci', 'Gerçekçi']];
+    const scBuilt = Object.fromEntries(scNames.map(([k]) => [k, E.buildBacNotes(cfg, data, k)]));
+    const gb = scBuilt.gercekci;
+    const kaynak = (id) => (E.isNote((scen.gercekci || {})[id]) ? 'dosya'
+      : !gb.estimated.includes(id) ? 'bu yıl' : (gb.premiere || []).includes(id) ? '1ère' : 'ort.');
     const scBody = el('tbody');
     for (const s of cfg.subjects.filter((x) => !x.locked)) {
       scBody.append(el('tr', {}, el('td', { text: s.label }), el('td', { class: 'r', text: String(s.coef) }),
-        ...scNames.map(([k]) => el('td', { class: 'r', text: E.isNote((scen[k] || {})[s.id]) ? fmtS((scen[k] || {})[s.id]) : '–' }))));
+        ...scNames.map(([k]) => el('td', { class: 'r', text: E.isNote(scBuilt[k].notes[s.id]) ? fmtS(scBuilt[k].notes[s.id]) : '–' })),
+        el('td', { class: 'r', text: kaynak(s.id) })));
     }
-    const scBac = scNames.map(([k]) => fmt(E.finalBac(cfg, E.buildBacNotes(cfg, data, k).notes).final));
-    scBody.append(el('tr', { class: 'best' }, el('td', { text: 'Bac genel ortalaması' }), el('td'), ...scBac.map((v) => el('td', { class: 'r', text: v }))));
+    const scBac = scNames.map(([k]) => fmt(E.finalBac(cfg, scBuilt[k].notes).final));
+    scBody.append(el('tr', { class: 'best' }, el('td', { text: 'Bac genel ortalaması' }), el('td'), ...scBac.map((v) => el('td', { class: 'r', text: v })), el('td')));
     $('#scenTable').textContent = '';
-    $('#scenTable').append(el('table', {}, el('thead', {}, el('tr', {}, el('th', { text: 'Ders' }), el('th', { class: 'r', text: 'Kats.' }), ...scNames.map(([, l]) => el('th', { class: 'r', text: l })))), scBody));
+    $('#scenTable').append(el('table', {}, el('thead', {}, el('tr', {}, el('th', { text: 'Ders' }), el('th', { class: 'r', text: 'Kats.' }), ...scNames.map(([, l]) => el('th', { class: 'r', text: l })), el('th', { class: 'r', text: 'Kaynak' }))), scBody));
     const fileScen = Object.keys(scen).length > 0;
     $('#scenNote').textContent = (fileScen
-      ? 'Kötü gidiş ve Gerçekçi: veri dosyasındaki elle girilmiş tahminler — 1ère yıllık ortalamaları ve Terminale\'nin ilk sinyalleri (2 Ekim 2026); Philosophie ve Grand oral için veri yok, Français yazılı / sözlü notlarından türetildi. Pronote yenilemesiyle değişmezler; MyTaskBar sabit kaydında ("scenarios") düzenlenir. '
-      : 'Kötü gidiş ve Gerçekçi: dosyada senaryo yok, bu yılın ders ortalamalarından türetildi (gerçekçi = ortalama, kötü = −2). ')
+      ? 'Kötü gidiş ve Gerçekçi: veri dosyasındaki elle girilmiş tahminler; Pronote yenilemesiyle değişmezler, MyTaskBar sabit kaydında ("scenarios") düzenlenir. '
+      : 'Gerçekçi veriden türetilir ve her Pronote yenilemesiyle güncellenir: bu yıl notu olan derste Terminale ortalaması ("bu yıl"), olmayan derste 1ère notu ("1ère": Philosophie ← Français écrit, Grand oral ← Français oral, SES · EPS · EMC · LVC kendi 1ère notu), ikisi de yoksa bilinen ortalamaların ortalaması ("ort."); sınav dersleri tam puana oturur. Kötü gidiş = Gerçekçi − 2. ')
       + 'Hedef: Gerçekçi notların "Hedefe ne lazım?" kaydırıcısındaki hedefe göre dağıtılmış hâli (sabit dersler oynamaz). '
       + 'Güncel (Pronote): yalnız bilinenler — 1ère resmî notları + bu yıl notu olan derslerde Terminale ortalaması; notu olmayan dersler boş.';
 
@@ -581,6 +595,7 @@ async function main() {
       const built = E.buildBacNotes(cfg, data, 'guncel');
       state.var = { ...pick(built.notes, cfg.subjects.filter((s) => !s.locked)), ...session.get().custom };
       state.estimated = new Set(built.estimated);
+      state.premiere = new Set(built.premiere || []);
       state.current = new Set(built.current || []);
       state.counts = built.counts || {};
       state.avgs = built.averages || {};

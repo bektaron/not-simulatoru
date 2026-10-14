@@ -219,6 +219,35 @@ test('gradesBySubject / subjectAverages / deriveScenario', () => {
   assert.ok(d.estimated.includes('emc'));
   assert.ok(!d.estimated.includes('spe1'));
   assert.equal(d.notes.lva, 14);
+  assert.deepEqual(d.premiere, []);                      // data verilmeden 1ère'ye bakılmaz
+});
+
+test('deriveScenario: bu yıl notu olmayan ders 1ère notuyla dolar (O50, CD-O50-F3 1a)', () => {
+  const data = {
+    period: { type: 'semestre', index: 1 },
+    locked: [{ id: 'fr_e', note: 11 }, { id: 'fr_o', note: 17 }, { id: 'emc1', note: 16 }],
+    premiere: { spe2: 13.4, eps: 18.25 },
+    grades: [{ date: '2026-10-01', subjectId: 'spe1', note: 9, outOf: 20 }, { date: '2026-10-02', subjectId: 'hg', note: 18.5, outOf: 20 }],
+  };
+  const d = E.deriveScenario(cfg2027, data.grades, { defaultPeriod: 1, data });
+  assert.equal(d.notes.spe1, 9);                          // bu yıl
+  assert.equal(d.notes.spe2, 13);                         // 1ère 13,4 → sınav ızgarası (tam puan)
+  assert.equal(d.notes.philo, 11);                        // ← Français écrit
+  assert.equal(d.notes.go, 17);                           // ← Français oral
+  assert.equal(d.notes.eps, 18);                          // 18,25 → tam puana
+  assert.equal(d.notes.emc, 16);                          // ← EMC 1ère
+  assert.equal(d.notes.lva, E.toSubjectGrid({ rounding: 'ceil-0.1' }, (9 + 18.5) / 2));   // ne bu yıl ne 1ère: ortalama
+  assert.deepEqual(d.premiere.sort(), ['emc', 'eps', 'go', 'philo', 'spe2']);
+  assert.ok(!d.estimated.includes('spe1') && d.estimated.includes('go') && d.estimated.includes('lva'));
+  const g = E.buildBacNotes(cfg2027, data, 'gercekci');
+  const k = E.buildBacNotes(cfg2027, data, 'kotu');
+  assert.equal(g.source, 'derived');
+  assert.deepEqual(g.estimated.sort(), d.estimated.sort());   // tahmin = notu olmayan; notlu ders 'tahmin' değil
+  assert.equal(k.notes.go, 15);                           // Kötü = Gerçekçi − 2 (2a)
+  assert.equal(k.notes.spe1, 7);
+  const f = E.buildBacNotes(cfg2027, { ...data, scenarios: { gercekci: { go: 14 } } }, 'gercekci');
+  assert.equal(f.source, 'mixed');
+  assert.ok(!f.premiere.includes('go') && !f.estimated.includes('go'));   // dosyadaki değer tahmin listesine girmez
 });
 
 test('buildBacNotes: dosyada senaryo yoksa türetilir ve ±2 uygulanır', () => {
