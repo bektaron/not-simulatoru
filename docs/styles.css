@@ -181,6 +181,7 @@ details.sheet summary{cursor:pointer;font-family:var(--f-display);font-weight:60
 .trend.down{border-width:.6em .36em 0;border-top-color:var(--bad)}
 .trend.flat{width:.66em;height:.2em;border:0;border-radius:1px;background:var(--flat);vertical-align:.3em}
 .big .trend{margin-left:.25em;vertical-align:.3em}
+.tag .trend{margin-left:.45em;vertical-align:.05em}
 .card table{font-size:.82rem;margin-top:8px}
 .card td,.card th{padding:5px 4px}
 .addgrade{display:grid;grid-template-columns:1fr 64px 56px auto;gap:6px;align-items:center;margin-top:8px}

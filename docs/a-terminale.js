@@ -286,6 +286,12 @@ async function main() {
     const seg = segButtons($('#scen'), SCENARIOS, state.scenario, (id) => applyScenario(id));
     $('#scen').append(customNote);
 
+    // ders başına son notun yıl içi ortalamaya etkisi (O63) — etiketteki "ort." ile aynı hesap (buildCurrentNotes)
+    const yearTrends = {};
+    for (const [id, list] of Object.entries(E.gradesBySubject(data.grades))) {
+      yearTrends[id] = E.lastGradeTrend(list, (l) => E.yearAverages(l, { defaultPeriod: data.period ? data.period.index : undefined }).averages[id]);
+    }
+
     function syncRows() {
       for (const [id, r] of Object.entries(rows)) { if (E.isNote(state.var[id])) r.set(state.var[id]); else if (state.empty.has(id)) r.set(null); }
       for (const [id, r] of Object.entries(rows)) {
@@ -294,8 +300,10 @@ async function main() {
         if (!state.estimated.has(id) && tag) tag.remove();
         const cur = r.el.querySelector('.tag.cur');
         const curText = `güncel · ${state.counts[id] || 0} not${E.isNote(state.avgs[id]) ? ` · ort. ${fmt(state.avgs[id])}` : ''}`;
-        if (state.current.has(id) && !cur) r.el.querySelector('.name').insertBefore(el('span', { class: 'tag cur', text: curText, title: 'Bu yılın Pronote ortalaması (dönem ortalamalarının ortalaması)' }), r.el.querySelector('.name small'));
-        else if (state.current.has(id) && cur) cur.textContent = curText;
+        const curTag = () => el('span', { class: 'tag cur', title: 'Bu yılın Pronote ortalaması (dönem ortalamalarının ortalaması)' },
+          curText, E.isNote(state.avgs[id]) ? trendIcon(yearTrends[id]) : null);
+        if (state.current.has(id) && !cur) r.el.querySelector('.name').insertBefore(curTag(), r.el.querySelector('.name small'));
+        else if (state.current.has(id) && cur) cur.replaceWith(curTag());
         if (!state.current.has(id) && cur) cur.remove();
         const none = r.el.querySelector('.tag.none');
         const isEmpty = state.empty.has(id) && !E.isNote(state.var[id]);
