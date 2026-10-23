@@ -1,4 +1,4 @@
-import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, setPill, noteRow, segButtons, initTabs, sessionState, initTheme, initPrint, $ } from './ui.js';
+import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, setPill, noteRow, segButtons, initTabs, sessionState, initTheme, initPrint, trendIcon, $ } from './ui.js';
 
 initTheme($('#theme'));
 initPrint($('#pdfBtn'));
@@ -104,6 +104,9 @@ async function main() {
       const pLabel = (periods.find((p) => p.index === state.period) || {}).label || `${state.period}. dönem`;
       $('#genTitle').textContent = `Genel ortalama — ${pLabel}`;
       $('#general').textContent = fmt(T.general);
+      // son notun genel ortalamaya etkisi (O63): gösterilen listeyle — geçici notlar dahil
+      const periodGrades = Object.values(by).flat();
+      if (T.general != null) $('#general').append(trendIcon(E.lastGradeTrend(periodGrades, (l) => E.termGeneralRaw(sec, E.gradesBySubject(l)))) || '');
       const withAvg = T.subjects.filter((s) => s.average != null);
       setPill($('#genSub'), T.general == null ? null : { label: `${withAvg.length} ders · ${T.countedCoef} katsayı`, tone: 'acc' });
       const total = Object.values(by).reduce((a, l) => a + l.length, 0);
@@ -140,7 +143,7 @@ async function main() {
           addTemp({ subjectId: s.id, label: lbl.value.trim() || 'geçici', note: E.clamp(v, 0, 20), outOf: 20, coef: Number.isFinite(parseFloat(coef.value)) ? parseFloat(coef.value) : 1, period: state.period });
         } });
         cards.append(el('article', { class: 'card' },
-          el('header', {}, el('h3', {}, s.label, s.optional ? el('span', { class: 'tag', text: 'opsiyon' }) : null, ' ', el('small', { class: 'sub num', text: `×${s.coef}` })), el('span', { class: 'avg', text: fmt(avg) })),
+          el('header', {}, el('h3', {}, s.label, s.optional ? el('span', { class: 'tag', text: 'opsiyon' }) : null, ' ', el('small', { class: 'sub num', text: `×${s.coef}` })), el('span', { class: 'avg' }, fmt(avg), trendIcon(E.lastGradeTrend(list)))),
           list.length
             ? el('div', { class: 'tablebox' }, el('table', {}, el('thead', {}, el('tr', {}, el('th', { text: 'Tarih' }), el('th', { text: 'Değerlendirme' }), el('th', { class: 'r', text: 'Not' }), el('th', { class: 'r', text: 'Kats.' }), el('th', { class: 'r', text: 'Sınıf' }), el('th'))), tbody))
             : el('p', { class: 'sub mt', text: 'Bu dönemde not yok.' }),

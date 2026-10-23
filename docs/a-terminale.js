@@ -1,4 +1,4 @@
-import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, buildGauge, setPill, noteRow, segButtons, sessionState, initTheme, initPrint, $ } from './ui.js';
+import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, buildGauge, setPill, noteRow, segButtons, sessionState, initTheme, initPrint, trendIcon, $ } from './ui.js';
 
 initTheme($('#theme'));
 initPrint($('#pdfBtn'));
@@ -384,6 +384,11 @@ async function main() {
       $('#knownAvg').textContent = !E.isNote(K.final) ? ''
         : K.currentCoef > 0 ? `Şu ana kadarki notlarla: ${fmt(K.final)} · ${K.coef}/${K.total} kats. (tahminler hariç)`
           : `Şu ana kadarki notlarla: ${fmt(K.final)} · yalnız 1ère (${K.coef}/${K.total} kats.)`;
+      // son notun bu ortalamaya etkisi (O63); gösterim aşağı kesik (floor2)
+      if (E.isNote(K.final) && K.currentCoef > 0) {
+        const known = (l) => E.knownAverage(cfg, { ...data, grades: l }, { locked: lockedNotes() }).raw;
+        $('#knownAvg').append(trendIcon(E.lastGradeTrend(data.grades, known, { key: E.floor2 }), (x) => fmt(E.floor2(x))) || '');
+      }
       $('#lockedAvg').textContent = fmt(T.lockedAvg);
       $('#lockedCoef').textContent = `${T.lockedCoef} katsayı · ${fmt1(T.lockedSum)} puan`;
       $('#restAvg').textContent = fmt(T.restAvg);
@@ -550,7 +555,7 @@ async function main() {
           el('td', { class: 'r', text: E.isNote(g.classAvg) ? fmt(g.classAvg) : '–' })));
       }
       gradesBox.append(el('article', { class: 'card' },
-        el('header', {}, el('h3', { text: s.label }), el('span', { class: 'avg', text: fmt(avg) })),
+        el('header', {}, el('h3', { text: s.label }), el('span', { class: 'avg' }, fmt(avg), trendIcon(E.lastGradeTrend(list)))),
         el('div', { class: 'tablebox' }, el('table', {}, el('thead', {}, el('tr', {}, el('th', { text: 'Tarih' }), el('th', { text: 'Değerlendirme' }), el('th', { class: 'r', text: 'Not' }), el('th', { class: 'r', text: 'Kats.' }), el('th', { class: 'r', text: 'Sınıf' }))), tbody))));
     }
     const up = (data.upcoming || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));

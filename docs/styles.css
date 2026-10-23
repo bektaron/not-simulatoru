@@ -2,7 +2,7 @@
 :root{
   --paper:#f4f6f9; --sheet:#ffffff; --ink:#18223a; --muted:#5d6782; --rule:#d9dee8;
   --accent:#1f3d73; --accent-soft:#e3e9f4; --track:#e6eaf1;
-  --good:#1d7a4f; --good-soft:#dff1e7; --warn:#a8650c; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f8e1df; --tgt:#6b3fa0; --tgt-soft:#efe6f8;
+  --good:#1d7a4f; --good-soft:#dff1e7; --warn:#a8650c; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f8e1df; --flat:#c29b00; --tgt:#6b3fa0; --tgt-soft:#efe6f8;
   --f-display:Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
   --f-body:system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-num:ui-monospace, Consolas, "SF Mono", Menlo, monospace;
@@ -11,11 +11,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#0f1422; --sheet:#161d2f; --ink:#e7ebf4; --muted:#9aa4bd; --rule:#2a3350;
   --accent:#8fb0ec; --accent-soft:#1f2c4a; --track:#232c45;
-  --good:#5cc592; --good-soft:#17352a; --warn:#e3a54a; --warn-soft:#3a2c14; --bad:#ef7d74; --bad-soft:#3d1c1a; --tgt:#c4a3f2; --tgt-soft:#2e2245; color-scheme:dark}}
+  --good:#5cc592; --good-soft:#17352a; --warn:#e3a54a; --warn-soft:#3a2c14; --bad:#ef7d74; --bad-soft:#3d1c1a; --flat:#e8c547; --tgt:#c4a3f2; --tgt-soft:#2e2245; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#0f1422; --sheet:#161d2f; --ink:#e7ebf4; --muted:#9aa4bd; --rule:#2a3350;
   --accent:#8fb0ec; --accent-soft:#1f2c4a; --track:#232c45;
-  --good:#5cc592; --good-soft:#17352a; --warn:#e3a54a; --warn-soft:#3a2c14; --bad:#ef7d74; --bad-soft:#3d1c1a; --tgt:#c4a3f2; --tgt-soft:#2e2245; color-scheme:dark}
+  --good:#5cc592; --good-soft:#17352a; --warn:#e3a54a; --warn-soft:#3a2c14; --bad:#ef7d74; --bad-soft:#3d1c1a; --flat:#e8c547; --tgt:#c4a3f2; --tgt-soft:#2e2245; color-scheme:dark}
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -175,6 +175,12 @@ details.sheet summary{cursor:pointer;font-family:var(--f-display);font-weight:60
 .card{border:1px solid var(--rule);border-radius:10px;padding:12px 14px;background:var(--sheet);min-width:0}
 .card header{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .card header .avg{font-family:var(--f-num);font-weight:600;font-size:1.1rem;white-space:nowrap}
+/* son notun ortalamaya etkisi (O63): ▲ yeşil · ▬ sarı · ▼ kırmızı */
+.trend{display:inline-block;width:0;height:0;margin-left:.4em;vertical-align:.12em;border-style:solid;border-color:transparent}
+.trend.up{border-width:0 .36em .6em;border-bottom-color:var(--good)}
+.trend.down{border-width:.6em .36em 0;border-top-color:var(--bad)}
+.trend.flat{width:.66em;height:.2em;border:0;border-radius:1px;background:var(--flat);vertical-align:.3em}
+.big .trend{margin-left:.25em;vertical-align:.3em}
 .card table{font-size:.82rem;margin-top:8px}
 .card td,.card th{padding:5px 4px}
 .addgrade{display:grid;grid-template-columns:1fr 64px 56px auto;gap:6px;align-items:center;margin-top:8px}
@@ -246,7 +252,7 @@ td.num,.card td.num{white-space:nowrap}
   :root,:root[data-theme="dark"],:root:not([data-theme="light"]){
     --paper:#ffffff; --sheet:#ffffff; --ink:#111827; --muted:#4b5563; --rule:#d1d5db;
     --accent:#1f3d73; --accent-soft:#e3e9f4; --track:#e6eaf1;
-    --good:#1d7a4f; --good-soft:#dff1e7; --warn:#a8650c; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f8e1df; --tgt:#6b3fa0; --tgt-soft:#efe6f8;
+    --good:#1d7a4f; --good-soft:#dff1e7; --warn:#a8650c; --warn-soft:#fbefd9; --bad:#b3261e; --bad-soft:#f8e1df; --flat:#c29b00; --tgt:#6b3fa0; --tgt-soft:#efe6f8;
     color-scheme:light}
   body{background:#fff;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .wrap{max-width:none;padding:0;gap:12px}

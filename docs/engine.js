@@ -535,6 +535,26 @@ export function subjectAverages(grades, opts = {}) {
 }
 
 /**
+ * Son notun ortalamayı ne yöne çektiği (O63): ortalama, en son tarihli notlar çıkarılınca ne olurdu?
+ * Veride gün içi sıra yok → aynı günün notları birlikte "son not" sayılır; notu olmayan satır (Abs · Disp) son not
+ * sayılmaz. avgFn(liste) → sayı | null (vars. pronoteAverage). Yön, gösterilen değerle verilir: key (vars. round2)
+ * öncesi ve sonrası aynıysa 'flat'. Önceki ortalama yoksa (dönemin ilk notu) null.
+ * Döner: { dir: 'up'|'flat'|'down', before, after, delta, date } | null
+ */
+export function lastGradeTrend(grades, avgFn = pronoteAverage, { key = round2 } = {}) {
+  const list = Array.isArray(grades) ? grades.filter(Boolean) : [];
+  let date = null;
+  for (const g of list) if (isNote(g.note) && typeof g.date === 'string' && (date === null || g.date > date)) date = g.date;
+  if (date === null) return null;
+  const after = avgFn(list);
+  const before = avgFn(list.filter((g) => !(isNote(g.note) && g.date === date)));
+  if (!isNote(after) || !isNote(before)) return null;
+  const a = key(after);
+  const b = key(before);
+  return { dir: a > b ? 'up' : a < b ? 'down' : 'flat', before, after, delta: after - before, date };
+}
+
+/**
  * Yıl içi ortalama: her dönemin ders ortalaması ayrı hesaplanır, sonra dönem ortalamalarının
  * eşit ağırlıklı ortalaması alınır (resmî "moyenne des moyennes périodiques"; Pronote varsayılanı).
  * Dönen: { averages: {id: number}, periods: {id: kaç dönemden} }
@@ -733,7 +753,7 @@ export function termAverage(config, bySubject = {}) {
 }
 
 /** termAverage'ın yuvarlanmamış genel ortalaması (hedef aramaları için). */
-function termGeneralRaw(config, bySubject) {
+export function termGeneralRaw(config, bySubject) {
   const items = [];
   for (const s of config.subjects || []) {
     const avg = pronoteAverage(Array.isArray(bySubject[s.id]) ? bySubject[s.id] : []);

@@ -532,3 +532,52 @@ test('yardımcılar: round2, snapToStep, ceilToStep, noteOn20', () => {
   assert.equal(E.noteOn20(15, 30), 10);
   assert.equal(E.noteOn20(null), null);
 });
+
+test('lastGradeTrend: son günün notları çıkarılınca ortalama (O63)', () => {
+  const g = [
+    { date: '2026-09-10', subjectId: 'm', note: 12 },
+    { date: '2026-09-20', subjectId: 'm', note: 14 },
+  ];
+  const up = E.lastGradeTrend([...g, { date: '2026-10-01', subjectId: 'm', note: 16 }]);
+  assert.equal(up.dir, 'up');
+  assert.equal(up.before, 13);
+  assert.equal(up.after, 14);
+  assert.equal(up.date, '2026-10-01');
+  assert.equal(E.lastGradeTrend([...g, { date: '2026-10-01', subjectId: 'm', note: 10 }]).dir, 'down');
+  assert.equal(E.lastGradeTrend([...g, { date: '2026-10-01', subjectId: 'm', note: 13 }]).dir, 'flat');
+  // sıra değil tarih belirler
+  assert.equal(E.lastGradeTrend([{ date: '2026-10-01', subjectId: 'm', note: 20 }, ...g]).dir, 'up');
+  // aynı günün notları birlikte: (16 + 6)/2 = 11 → 12,67'den 12,33'e
+  const same = E.lastGradeTrend([...g, { date: '2026-10-01', note: 16 }, { date: '2026-10-01', note: 6 }]);
+  assert.equal(same.dir, 'down');
+  assert.ok(Math.abs(same.after - 12) < 1e-12);
+  // notsuz satır (Abs) son not sayılmaz: son gerçek not 14 → 12'den 13'e
+  assert.equal(E.lastGradeTrend([...g, { date: '2026-10-05', note: null }]).dir, 'up');
+  // önceki ortalama yok → null; boş liste → null
+  assert.equal(E.lastGradeTrend([{ date: '2026-10-01', note: 15 }]), null);
+  assert.equal(E.lastGradeTrend([]), null);
+  assert.equal(E.lastGradeTrend(undefined), null);
+});
+
+test('lastGradeTrend: yön gösterilen değerle — iki ondalıkta aynıysa düz, key ile aşağı kesik', () => {
+  // 19 not 12 + bir 12,04 → ortalama 12,002 (gösterim 12,00) → düz
+  const base = Array.from({ length: 19 }, (_, i) => ({ date: `2026-09-${String(i + 1).padStart(2, '0')}`, note: 12 }));
+  const t = E.lastGradeTrend([...base, { date: '2026-10-01', note: 12.04 }]);
+  assert.equal(t.dir, 'flat');
+  assert.ok(t.delta > 0);
+  // aynı veri, ortalama yerine toplam fonksiyonu: 228 → 240,04
+  const sum = (l) => l.reduce((a, x) => a + (E.isNote(x.note) ? x.note : 0), 0) || null;
+  assert.equal(E.lastGradeTrend([...base, { date: '2026-10-01', note: 12.04 }], sum).dir, 'up');
+  // key = floor2: 12,009 ve 12,001 ikisi de 12,00 → düz
+  let n = 0;
+  const seq = () => (n++ === 0 ? 12.009 : 12.001);
+  assert.equal(E.lastGradeTrend([{ date: '2026-09-01', note: 1 }, { date: '2026-09-02', note: 1 }], seq, { key: E.floor2 }).dir, 'flat');
+});
+
+test('lastGradeTrend: Seconde genel ortalaması (termGeneralRaw) ile', () => {
+  const by = E.gradesBySubject(exB.grades, { period: 1, defaultPeriod: 1 });
+  const flat = Object.values(by).flat();
+  const t = E.lastGradeTrend(flat, (l) => E.termGeneralRaw(cfgSec, E.gradesBySubject(l)));
+  assert.ok(t && ['up', 'flat', 'down'].includes(t.dir));
+  assert.ok(Math.abs(E.round2(t.after) - E.termAverage(cfgSec, by).general) < 1e-9);
+});

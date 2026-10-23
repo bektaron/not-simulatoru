@@ -33,6 +33,17 @@ export const fmt = (n) => (E.isNote(n) ? (Math.round(n * 100) / 100).toFixed(2).
 export const fmt1 = (n) => (E.isNote(n) ? (Math.round(n * 10) / 10).toFixed(1).replace('.', ',') : '–');
 export const fmtSigned = (n) => (E.isNote(n) ? (n >= 0 ? '+' : '−') + fmt(Math.abs(n)) : '–');
 
+/**
+ * Son notun ortalamaya etkisi (O63): yukarı yeşil · düz sarı · aşağı kırmızı. t = E.lastGradeTrend(...) sonucu;
+ * null → null (el() atlar). show = gösterilen değerin biçimi (vars. fmt).
+ */
+const TREND_TEXT = { up: 'yükseltti', flat: 'değiştirmedi', down: 'düşürdü' };
+export function trendIcon(t, show = fmt) {
+  if (!t) return null;
+  const tip = `Son not (${fmtDate(t.date)}) ortalamayı ${TREND_TEXT[t.dir]}: ${show(t.before)} → ${show(t.after)}`;
+  return el('span', { class: `trend ${t.dir}`, title: tip, role: 'img', 'aria-label': tip });
+}
+
 const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
 export function fmtDate(iso) {
   if (typeof iso !== 'string') return '–';
