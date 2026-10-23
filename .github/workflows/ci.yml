@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Testler (motor + şema + veri katmanı)
+        run: npm test
+
+      - name: Gizlilik denetimi (dosyalar + geçmiş + commit mesajları)
+        env:
+          PRIVACY_TERMS: ${{ secrets.PRIVACY_TERMS }}
+        run: node scripts/privacy-check.mjs --history --messages
+
+      - name: Salt-okunur denetimi (site veri reposuna yazamaz)
+        run: node scripts/readonly-check.mjs
