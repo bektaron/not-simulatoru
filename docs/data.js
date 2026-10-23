@@ -13,7 +13,7 @@
  *
  *   Result = { student, mode, status, data|null, updatedAt, stale, errors, message }
  */
-import { decryptEnvelope, deriveKeyHex, isEnvelope } from './crypto.js?v=4044443755';
+import { decryptEnvelope, deriveKeyHex, isEnvelope } from './crypto.js?v=8d2d27637e';
 
 export const Mode = Object.freeze({
   LOCAL: 'local',               // data/<a|b>.json okundu

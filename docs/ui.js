@@ -2,9 +2,9 @@
  * Ortak arayüz bileşenleri. Veri metinleri her zaman textContent ile yazılır
  * (kayıttaki string'ler HTML olarak yorumlanmaz).
  */
-import * as E from './engine.js?v=4044443755';
-import { createDataClient, Mode } from './data.js?v=4044443755';
-import { validateNotes, formatErrors } from './validate.js?v=4044443755';
+import * as E from './engine.js?v=8d2d27637e';
+import { createDataClient, Mode } from './data.js?v=8d2d27637e';
+import { validateNotes, formatErrors } from './validate.js?v=8d2d27637e';
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -38,10 +38,18 @@ export const fmtSigned = (n) => (E.isNote(n) ? (n >= 0 ? '+' : '−') + fmt(Math
  * null → null (el() atlar). show = gösterilen değerin biçimi (vars. fmt).
  */
 const TREND_TEXT = { up: 'yükseltti', flat: 'değiştirmedi', down: 'düşürdü' };
-export function trendIcon(t, show = fmt) {
+export function trendIcon(t, show = fmt, extra = '') {
   if (!t) return null;
-  const tip = `Son not (${fmtDate(t.date)}) ortalamayı ${TREND_TEXT[t.dir]}: ${show(t.before)} → ${show(t.after)}`;
+  const tip = `Son not (${fmtDate(t.date)}) ortalamayı ${TREND_TEXT[t.dir]}: ${show(t.before)} → ${show(t.after)}${extra ? `\n${extra}` : ''}`;
   return el('span', { class: `trend ${t.dir}`, title: tip, role: 'img', 'aria-label': tip });
+}
+
+/** Genel ortalama simgesinin ipucu ek satırı: E.lastDayBreakdown sonucu → metin ('' = yok). */
+const DAY_MARK = { up: '▲', flat: '▬', down: '▼' };
+export function dayNote(day, labelOf = (id) => id) {
+  if (!day || !day.items.length) return '';
+  const parts = day.items.map((i) => `${labelOf(i.subjectId)} ${i.dir === 'first' ? 'ilk not (ortalamaya yeni girdi)' : DAY_MARK[i.dir]}`);
+  return `Son not günü ${fmtDate(day.date)}: ${parts.join(' · ')}\nBu simge o günün bütün notlarının etkisi; ders simgeleri her dersin kendi son notu.`;
 }
 
 const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];

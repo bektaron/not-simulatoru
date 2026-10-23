@@ -555,6 +555,25 @@ export function lastGradeTrend(grades, avgFn = pronoteAverage, { key = round2 } 
 }
 
 /**
+ * Genel ortalama simgesinin açıklaması (O63): son not günü ve o gün notu olan dersler. Ders başına yön o dersin
+ * kendi son notunun etkisi; 'first' = dersin ilk notu (ortalamaya yeni girdi). subjectAvg(id) → ders ortalaması
+ * fonksiyonu (vars. pronoteAverage). Döner: { date, items: [{ subjectId, dir: 'up'|'flat'|'down'|'first' }] } | null
+ */
+export function lastDayBreakdown(grades, subjectAvg = () => pronoteAverage) {
+  const list = Array.isArray(grades) ? grades.filter(Boolean) : [];
+  let date = null;
+  for (const g of list) if (isNote(g.note) && typeof g.date === 'string' && (date === null || g.date > date)) date = g.date;
+  if (date === null) return null;
+  const items = [];
+  for (const [id, own] of Object.entries(gradesBySubject(list)).sort(([a], [b]) => a.localeCompare(b))) {
+    if (!own.some((g) => isNote(g.note) && g.date === date)) continue;
+    const t = lastGradeTrend(own, subjectAvg(id));
+    items.push({ subjectId: id, dir: t ? t.dir : 'first' });
+  }
+  return { date, items };
+}
+
+/**
  * Yıl içi ortalama: her dönemin ders ortalaması ayrı hesaplanır, sonra dönem ortalamalarının
  * eşit ağırlıklı ortalaması alınır (resmî "moyenne des moyennes périodiques"; Pronote varsayılanı).
  * Dönen: { averages: {id: number}, periods: {id: kaç dönemden} }

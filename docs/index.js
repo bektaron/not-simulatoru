@@ -1,4 +1,4 @@
-import { boot, el, fmtDateTime, initTheme, Mode, unlockBox, webKeyStore, $ } from './ui.js?v=4044443755';
+import { boot, el, fmtDateTime, initTheme, Mode, unlockBox, webKeyStore, $ } from './ui.js?v=8d2d27637e';
 
 initTheme($('#theme'));
 

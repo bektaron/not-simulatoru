@@ -581,3 +581,17 @@ test('lastGradeTrend: Seconde genel ortalaması (termGeneralRaw) ile', () => {
   assert.ok(t && ['up', 'flat', 'down'].includes(t.dir));
   assert.ok(Math.abs(E.round2(t.after) - E.termAverage(cfgSec, by).general) < 1e-9);
 });
+
+test('lastDayBreakdown: son günün dersleri, kendi yönleri ve ilk not (O63)', () => {
+  const g = [
+    { date: '2026-09-10', subjectId: 'es', note: 14 }, { date: '2026-10-13', subjectId: 'es', note: 10 },
+    { date: '2026-10-13', subjectId: 'ses', note: 16 }, { date: '2026-10-12', subjectId: 'm', note: 9 },
+    { date: '2026-10-14', subjectId: 'x', note: null },
+  ];
+  assert.deepEqual(E.lastDayBreakdown(g), { date: '2026-10-13', items: [{ subjectId: 'es', dir: 'down' }, { subjectId: 'ses', dir: 'first' }] });
+  assert.equal(E.lastDayBreakdown([]), null);
+  // ders ortalaması fonksiyonu verilebilir (yıl içi ortalama)
+  const calls = [];
+  E.lastDayBreakdown(g, (id) => { calls.push(id); return E.pronoteAverage; });
+  assert.deepEqual(calls, ['es', 'ses']);
+});

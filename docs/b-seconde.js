@@ -1,4 +1,4 @@
-import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, setPill, noteRow, segButtons, initTabs, sessionState, initTheme, initPrint, trendIcon, $ } from './ui.js?v=4044443755';
+import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, setPill, noteRow, segButtons, initTabs, sessionState, initTheme, initPrint, trendIcon, dayNote, $ } from './ui.js?v=8d2d27637e';
 
 initTheme($('#theme'));
 initPrint($('#pdfBtn'));
@@ -106,7 +106,10 @@ async function main() {
       $('#general').textContent = fmt(T.general);
       // son notun genel ortalamaya etkisi (O63): gösterilen listeyle — geçici notlar dahil
       const periodGrades = Object.values(by).flat();
-      if (T.general != null) $('#general').append(trendIcon(E.lastGradeTrend(periodGrades, (l) => E.termGeneralRaw(sec, E.gradesBySubject(l)))) || '');
+      if (T.general != null) {
+        const gt = E.lastGradeTrend(periodGrades, (l) => E.termGeneralRaw(sec, E.gradesBySubject(l)));
+        $('#general').append(trendIcon(gt, fmt, dayNote(E.lastDayBreakdown(periodGrades), labelOf)) || '');
+      }
       const withAvg = T.subjects.filter((s) => s.average != null);
       setPill($('#genSub'), T.general == null ? null : { label: `${withAvg.length} ders · ${T.countedCoef} katsayı`, tone: 'acc' });
       const total = Object.values(by).reduce((a, l) => a + l.length, 0);

@@ -1,4 +1,4 @@
-import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, buildGauge, setPill, noteRow, segButtons, sessionState, initTheme, initPrint, trendIcon, $ } from './ui.js?v=4044443755';
+import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, buildGauge, setPill, noteRow, segButtons, sessionState, initTheme, initPrint, trendIcon, dayNote, $ } from './ui.js?v=8d2d27637e';
 
 initTheme($('#theme'));
 initPrint($('#pdfBtn'));
@@ -395,7 +395,9 @@ async function main() {
       // son notun bu ortalamaya etkisi (O63); gösterim aşağı kesik (floor2)
       if (E.isNote(K.final) && K.currentCoef > 0) {
         const known = (l) => E.knownAverage(cfg, { ...data, grades: l }, { locked: lockedNotes() }).raw;
-        $('#knownAvg').append(trendIcon(E.lastGradeTrend(data.grades, known, { key: E.floor2 }), (x) => fmt(E.floor2(x))) || '');
+        const yearAvg = (id) => (l) => E.yearAverages(l, { defaultPeriod: data.period ? data.period.index : undefined }).averages[id];
+        $('#knownAvg').append(trendIcon(E.lastGradeTrend(data.grades, known, { key: E.floor2 }), (x) => fmt(E.floor2(x)),
+          dayNote(E.lastDayBreakdown(data.grades, yearAvg), labelOf)) || '');
       }
       $('#lockedAvg').textContent = fmt(T.lockedAvg);
       $('#lockedCoef').textContent = `${T.lockedCoef} katsayı · ${fmt1(T.lockedSum)} puan`;

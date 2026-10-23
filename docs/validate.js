@@ -13,7 +13,7 @@
  * Bilerek dışarıda: multipleOf, oneOf/anyOf/allOf, prefixItems, propertyNames.
  */
 
-import { allSubjectIds, isNote } from './engine.js?v=4044443755';
+import { allSubjectIds, isNote } from './engine.js?v=8d2d27637e';
 
 const SUPPORTED = new Set([
   '$schema', '$id', 'title', 'description', 'default', 'examples', 'deprecated',
