@@ -2,9 +2,9 @@
  * Ortak arayüz bileşenleri. Veri metinleri her zaman textContent ile yazılır
  * (kayıttaki string'ler HTML olarak yorumlanmaz).
  */
-import * as E from './engine.js';
-import { createDataClient, Mode } from './data.js';
-import { validateNotes, formatErrors } from './validate.js';
+import * as E from './engine.js?v=4044443755';
+import { createDataClient, Mode } from './data.js?v=4044443755';
+import { validateNotes, formatErrors } from './validate.js?v=4044443755';
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];

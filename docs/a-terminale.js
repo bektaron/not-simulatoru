@@ -1,4 +1,4 @@
-import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, buildGauge, setPill, noteRow, segButtons, sessionState, initTheme, initPrint, trendIcon, $ } from './ui.js';
+import { E, Mode, boot, el, fmt, fmt1, fmtDate, fmtNote, fmtSigned, renderBanner, renderEmptyState, buildGauge, setPill, noteRow, segButtons, sessionState, initTheme, initPrint, trendIcon, $ } from './ui.js?v=4044443755';
 
 initTheme($('#theme'));
 initPrint($('#pdfBtn'));

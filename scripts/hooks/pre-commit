@@ -1,0 +1,4 @@
+#!/bin/sh
+# dosya sürümü (O63): sayfa betik/stil adresleri içerikle damgalı mı? Değilse commit durur — önce: npm run surum
+# (yayından sonra önbellekteki eski ui.js yeni sayfa betiğiyle karışıp sayfayı boş bırakmasın).
+node scripts/surum.mjs --check || exit 1

@@ -11,6 +11,7 @@
     "check": "npm test && npm run privacy",
     "serve": "python -m http.server 8081 --bind 127.0.0.1",
     "validate": "node scripts/validate-data.mjs data/a.json data/b.json",
+    "surum": "node scripts/surum.mjs",
     "hooks": "git config core.hooksPath scripts/hooks",
     "web:sifre": "node scripts/web-sifre.mjs",
     "web:yayin": "node scripts/web-yayin.mjs",
